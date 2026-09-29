@@ -314,32 +314,32 @@ struct OnboardingView: View {
     // 6 ------------------------------------------------------------------
     private var bodyStep: some View {
         VStack(alignment: .leading, spacing: 14) {
-            header("About you", "Used to pick safe starting weights and estimate calories. You can change it any time.")
+            header(L("About you"), L("Used to pick safe starting weights and estimate calories. You can change it any time."))
 
-            Picker("Sex", selection: $draft.sex) {
+            Picker(L("Sex"), selection: $draft.sex) {
                 ForEach(Sex.allCases) { Text($0.title).tag($0) }
             }
             .pickerStyle(.segmented)
 
-            Picker("Units", selection: $draft.units) {
+            Picker(L("Units"), selection: $draft.units) {
                 ForEach(UnitSystem.allCases) { units in
-                    Text(units == .metric ? "Metric" : "Imperial").tag(units)
+                    Text(units == .metric ? L("Metric") : L("Imperial")).tag(units)
                 }
             }
             .pickerStyle(.segmented)
 
             Stepper(value: weightBinding, in: weightRange, step: 1) {
-                Text("Weight **\(Int(weightBinding.wrappedValue)) \(draft.units.weightLabel)**")
+                LText("Weight **{0} {1}**", Int(weightBinding.wrappedValue), draft.units.weightLabel)
             }
             Stepper(value: heightBinding, in: heightRange, step: 1) {
-                Text("Height **\(Int(heightBinding.wrappedValue)) \(draft.units.heightLabel)**")
+                LText("Height **{0} {1}**", Int(heightBinding.wrappedValue), draft.units.heightLabel)
             }
             Stepper(value: $draft.age, in: 14...90) {
-                Text("Age **\(draft.age)**")
+                LText("Age **{0}**", draft.age)
             }
 
-            sectionLabel("Anything we should protect?")
-            Text("We'll never pick exercises that load these areas.")
+            sectionLabel(L("Anything we should protect?"))
+            Text(L("We'll never pick exercises that load these areas."))
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
@@ -360,11 +360,11 @@ struct OnboardingView: View {
                     .buttonStyle(.plain)
                 }
             }
-            Toggle("Low impact only (no jumping)", isOn: $draft.lowImpactOnly)
+            Toggle(L("Low impact only (no jumping)"), isOn: $draft.lowImpactOnly)
                 .tint(Theme.pink)
                 .font(.system(size: 15))
 
-            Label("Momentum is not medical advice. If something hurts, stop and see a professional.", systemImage: "cross.case")
+            Label(L("Momentum is not medical advice. If something hurts, stop and see a professional."), systemImage: "cross.case")
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
                 .padding(.top, 4)
@@ -390,34 +390,34 @@ struct OnboardingView: View {
         let targets = VolumePlanner.weeklyTargets(for: profile)
 
         return VStack(alignment: .leading, spacing: 16) {
-            header(draft.name.isEmpty ? "Your plan" : "\(draft.name), here's your plan", "Built from your answers. It changes as you train.")
+            header(draft.name.isEmpty ? L("Your plan") : L("{0}, here's your plan", draft.name), L("Built from your answers. It changes as you train."))
 
-            planCard("Where you start", symbol: "figure.walk") {
+            planCard(L("Where you start"), symbol: "figure.walk") {
                 ForEach(placement.notes, id: \.self) { note in
-                    Text("• \(note)").font(.system(size: 14))
+                    Text(L("• {0}", note)).font(.system(size: 14))
                 }
             }
 
-            planCard("Your week", symbol: "calendar") {
+            planCard(L("Your week"), symbol: "calendar") {
                 ForEach(Array(week.enumerated()), id: \.offset) { pair in
                     HStack {
-                        Text(pair.element.date.formatted(.dateTime.weekday(.wide)))
+                        Text(Loc.date(pair.element.date, "EEEE"))
                             .font(.system(size: 14, weight: .semibold))
                         Spacer()
-                        Text("\(pair.element.workout.title) · ~\(pair.element.workout.minutes) min")
+                        Text(L("{0} · ~{1} min", pair.element.workout.title, pair.element.workout.minutes))
                             .font(.system(size: 14))
                             .foregroundStyle(.secondary)
                     }
                 }
             }
 
-            planCard("Weekly sets per muscle", symbol: "chart.bar.fill") {
+            planCard(L("Weekly sets per muscle"), symbol: "chart.bar.fill") {
                 ForEach(VolumePlanner.muscles, id: \.self) { muscle in
                     if let target = targets[muscle] {
                         HStack {
                             Text(muscle.title).font(.system(size: 14, weight: .medium))
                             Spacer()
-                            Text("\(planned[muscle] ?? 0) planned · goal \(target.low)-\(target.high)")
+                            Text(L("{0} planned · goal {1}-{2}", planned[muscle] ?? 0, target.low, target.high))
                                 .font(.system(size: 13))
                                 .foregroundStyle(.secondary)
                         }
@@ -425,19 +425,19 @@ struct OnboardingView: View {
                 }
             }
 
-            planCard("How it adapts", symbol: "wand.and.stars") {
-                Text("• Weights and reps move up when you hit the top of the range, and hold or drop when you don't.")
-                Text("• Bodyweight moves step up to harder versions as you master them.")
-                Text("• A lighter deload week comes every \(Periodization.blockLength(for: profile.level)) weeks, or sooner if you're worn out.")
-                Text("• After time off, weights come back gently.")
-                Text("• Swap any exercise you can't do, and we'll suggest the right alternative.")
+            planCard(L("How it adapts"), symbol: "wand.and.stars") {
+                Text(L("• Weights and reps move up when you hit the top of the range, and hold or drop when you don't."))
+                Text(L("• Bodyweight moves step up to harder versions as you master them."))
+                Text(L("• A lighter deload week comes every {0} weeks, or sooner if you're worn out.", Periodization.blockLength(for: profile.level)))
+                Text(L("• After time off, weights come back gently."))
+                Text(L("• Swap any exercise you can't do, and we'll suggest the right alternative."))
             }
 
             Toggle(isOn: healthBinding) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Connect Apple Health")
+                    Text(L("Connect Apple Health"))
                         .font(.system(size: 16, weight: .semibold))
-                    Text("Save workouts and weight to Health and show your steps.")
+                    Text(L("Save workouts and weight to Health and show your steps."))
                         .font(.system(size: 13))
                         .foregroundStyle(.secondary)
                 }
@@ -467,14 +467,16 @@ struct OnboardingView: View {
     private var footer: some View {
         HStack(spacing: 12) {
             if step > 0 {
-                Button("Back") { step -= 1 }
+                Button(L("Back")) { step -= 1 }
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 12)
             }
             Spacer()
-            Button(step == lastStep ? "Start training" : "Continue") {
+            Button(step == lastStep ? L("Start training") : L("Continue")) {
                 if step == lastStep {
+                    // The language picked on the first step lives on the store, not the draft.
+                    draft.language = store.profile.language
                     store.completeOnboarding(draft)
                 } else {
                     step += 1

@@ -166,6 +166,15 @@ enum ExerciseText {
 #if canImport(SwiftUI)
 /// Localized `Text` that renders `**bold**` and other inline markdown. Use `Text(L(...))` when markdown is not needed.
 func LText(_ key: String, _ args: CustomStringConvertible...) -> Text {
-    Text(LocalizedStringKey(Loc.text(key, args.map { String(describing: $0) })))
+    // Values (a name typed by the user, say) must not be read as markdown.
+    let escaped = args.map { arg -> String in
+        var text = ""
+        for character in String(describing: arg) {
+            if "\\`*_[]<>~".contains(character) { text.append("\\") }
+            text.append(character)
+        }
+        return text
+    }
+    return Text(LocalizedStringKey(Loc.text(key, escaped)))
 }
 #endif
