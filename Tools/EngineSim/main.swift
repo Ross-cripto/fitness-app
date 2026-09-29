@@ -253,3 +253,80 @@ if mode == "alts" {
         }
     }
 }
+
+// MARK: - JSON for the app-screen mockups (tools/mockups)
+
+func weekdayName(_ date: Date) -> String {
+    let f = DateFormatter()
+    f.dateFormat = "EEEE"
+    return f.string(from: date)
+}
+
+if mode == "mock" {
+    var p = personas[1].1
+    p.name = "Alex"
+    p.startDate = monday(0)
+    p.blockStart = monday(0)
+    let units = p.units
+    var history: [WorkoutSession] = []
+    var athlete = Athlete(weeklyGain: 0.012, rng: SeededRandom(state: 7))
+    let cal = PlanGenerator.calendar
+    // Two weeks of training so the plan has real history to react to.
+    for week in 0..<2 {
+        for offset in 0..<7 {
+            guard let day = cal.date(byAdding: .day, value: offset, to: monday(week)),
+                  let workout = PlanGenerator.workout(on: day, profile: p, history: history, now: day) else { continue }
+            let prev = history.map { $0.date }.max()
+            let session = performSession(workout, on: day, athlete: &athlete, profile: p)
+            history.append(session)
+            p = AdaptiveEngine.apply(session: session, to: p, history: history, previousSessionDate: prev).profile
+        }
+        athlete.grow()
+    }
+    let today = monday(2)
+    let workout = PlanGenerator.workout(on: today, profile: p, history: history, now: today)!
+
+    func encode(_ w: Workout) -> [String: Any] {
+        func item(_ e: PlannedExercise) -> [String: Any] {
+            var d: [String: Any] = [
+                "id": e.exerciseID, "name": e.exercise.name, "muscle": e.exercise.muscle.rawValue,
+                "sets": e.sets, "target": e.target, "repMin": e.repMin, "repMax": e.repMax, "rest": e.restSeconds,
+                "timed": e.exercise.kind == .timed, "label": e.targetLabel
+            ]
+            if let kg = e.weightKg { d["weight"] = units.formatWeight(kg) }
+            if let r = e.reason { d["reason"] = r }
+            if let rir = e.repsInReserve { d["rir"] = rir }
+            d["ramp"] = e.rampSets.map { "\(units.formatWeight($0.weightKg)) × \($0.reps)" }
+            return d
+        }
+        return [
+            "title": w.title, "subtitle": w.subtitle, "minutes": w.minutes, "sets": w.totalSets,
+            "calories": w.calories(weightKg: p.weightKg),
+            "phase": w.phase.map { ["label": $0.label, "rir": $0.repsInReserve, "deload": $0.isDeload] } as Any,
+            "warmup": w.warmup.map { $0.exercise.name },
+            "exercises": w.exercises.map(item)
+        ]
+    }
+
+    let week = PlanGenerator.week(containing: today, profile: p, history: history, now: today)
+    let planned = PlanGenerator.plannedSets(in: week)
+    let targets = VolumePlanner.weeklyTargets(for: p)
+    let target = workout.exercises[0]
+    var alts: [String: Any] = [:]
+    for reason in SwapReason.allCases {
+        let list = Alternatives.suggest(for: target, in: workout, reason: reason, profile: p, painAreas: reason == .pain ? [.shoulders] : [], limit: 4)
+        alts[reason.rawValue] = list.map { ["id": $0.exercise.id, "name": $0.exercise.name, "relation": $0.relation.title, "why": $0.why] }
+    }
+    let placement = Assessment.place(personas[1].1)
+    let json: [String: Any] = [
+        "name": p.name, "level": p.level.title, "placementNotes": placement.notes,
+        "week": week.map { ["day": weekdayName($0.date), "title": $0.workout.title, "minutes": $0.workout.minutes] },
+        "volume": VolumePlanner.muscles.map { ["muscle": $0.title, "planned": planned[$0] ?? 0, "low": targets[$0]!.low, "high": targets[$0]!.high] },
+        "workout": encode(workout),
+        "swapExercise": ["id": target.exerciseID, "name": target.exercise.name],
+        "alternatives": alts,
+        "blockLength": Periodization.blockLength(for: p.level)
+    ]
+    let data = try! JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys])
+    print(String(data: data, encoding: .utf8)!)
+}

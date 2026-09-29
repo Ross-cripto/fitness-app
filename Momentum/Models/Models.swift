@@ -460,7 +460,7 @@ struct PlannedExercise: Identifiable, Hashable {
     func calories(weightKg body: Double) -> Double {
         let active = Double(sets * workSeconds)
         let resting = Double(sets * restSeconds + 15)
-        return (exercise.met * body * active + 2.0 * body * resting) / 3600.0
+        return (exercise.met * body * active + 3.0 * body * resting) / 3600.0
     }
 
     var targetLabel: String {

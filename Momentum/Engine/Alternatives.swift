@@ -131,6 +131,8 @@ enum Alternatives {
 
             let samePattern = candidate.pattern == current.pattern
             guard samePattern || candidate.muscle == current.muscle else { continue }
+            // A compound lift is never replaced by an isolation move (or the reverse) unless it's the same movement.
+            if !samePattern && candidate.isCompound != current.isCompound { continue }
             // Warm-up drills and cardio are never a swap for a strength exercise.
             if candidate.muscle == .mobility || (candidate.muscle == .cardio) != (current.muscle == .cardio) { continue }
 
@@ -188,7 +190,9 @@ enum Alternatives {
             let areas = avoided.map { $0.title.lowercased() }.sorted().joined(separator: " and ")
             return areas.isEmpty ? "Puts less stress on the joints involved." : "Doesn't load your \(areas)."
         case .noEquipment:
-            return "Needs only \(candidate.equipment.title.lowercased())."
+            return candidate.equipment == .bodyweight
+                ? "No equipment needed."
+                : "Needs only \(candidate.equipment.title.lowercased())."
         case .dislike:
             return candidate.pattern == current.pattern
                 ? "Trains the same movement."

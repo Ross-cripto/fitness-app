@@ -374,6 +374,24 @@ final class AlternativesTests: XCTestCase {
         XCTAssertEqual(alts.first?.exercise.equipment, .dumbbells)
     }
 
+    func testCompoundLiftsAreNotReplacedByIsolationMoves() {
+        let p = T.profile(level: .advanced, equipment: .fullGym)
+        let (planned, workout) = setup(p, id: "bench_press")
+        for reason in SwapReason.allCases {
+            for alt in Alternatives.suggest(for: planned, in: workout, reason: reason, profile: p) {
+                XCTAssertTrue(alt.exercise.isCompound || alt.exercise.pattern == .horizontalPush, "\(reason) \(alt.exercise.id)")
+                XCTAssertNotEqual(alt.exercise.id, "db_fly")
+            }
+        }
+    }
+
+    func testExplanationsReadNaturally() {
+        let p = T.profile(level: .intermediate, equipment: .fullGym)
+        let (planned, workout) = setup(p, id: "bench_press")
+        let alts = Alternatives.suggest(for: planned, in: workout, reason: .noEquipment, profile: p)
+        XCTAssertFalse(alts.contains { $0.why.contains("only no equipment") })
+    }
+
     func testDislikeOffersTheSameMovementFirst() {
         let p = T.profile(level: .intermediate, equipment: .fullGym)
         let (planned, workout) = setup(p, id: "bench_press")

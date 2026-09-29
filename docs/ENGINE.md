@@ -47,24 +47,31 @@ Missing answers fall back to level defaults.
 
 * **Split** by number of chosen days: 1-3 full body (advanced 3 = push/pull/legs), 4 upper/lower, 5 push/pull/legs +
   upper/lower, 6 push/pull/legs twice. Days are the weekdays the person picked.
-* **Weekly volume targets** (hard sets per muscle per week):
+* **Weekly volume targets** (hard sets per muscle per week, before goal scaling):
 
   | | chest | back | legs | shoulders | arms | core |
   |---|---|---|---|---|---|---|
   | beginner | 6-8 | 6-8 | 8-10 | 4-6 | 4-6 | 4-6 |
-  | intermediate | 10-12 | 10-12 | 12-14 | 6-8 | 6-10 | 6-8 |
-  | advanced | 12-16 | 12-16 | 14-18 | 8-12 | 8-12 | 6-10 |
+  | intermediate | 10-12 | 10-12 | 14-18 | 6-8 | 6-10 | 6-8 |
+  | advanced | 12-16 | 12-16 | 16-20 | 8-12 | 8-12 | 6-10 |
 
   Scaled by goal: build muscle ×1.0, get stronger ×0.85, lose fat ×0.85, general fitness ×0.7. The midpoint is split
-  across the sessions that train that muscle. Each exercise gets 2-5 sets (compounds first). This is why a beginner's
-  session can be shorter than the minutes they chose: extra volume would not help yet, and the plan says so.
-* **Time budget.** Session length is a ceiling. If the plan is too long, accessory sets drop to 2, then the
-  lowest-priority exercises are removed (never below 3 exercises).
+  across the sessions that train that muscle. A muscle is only trained in as many sessions as its target justifies
+  (2+ sets each), spread evenly over the week, so small targets are not overshot by the two-set minimum. Each
+  exercise gets 2-5 sets (compounds first, at most 3 for leg lifts so leg work spreads across several movements).
+  If the session then uses under 80% of the time, the planner reruns with the top of the range instead of the middle.
+  This is why a beginner's session can be shorter than the minutes they chose: extra volume would not help yet.
+* **Time budget.** Session length is a ceiling. If the plan is too long, in order: exercises with more than 3 sets lose
+  one, accessories drop to 2 sets, rests shorten by 15% (twice at most, never below 75 s for heavy lifts), accessories
+  are dropped, compounds drop to 2 sets, and only then exercises are removed (never below 3; very restricted people are
+  padded with safe core, leg or cardio work).
 * **Exercise selection** by movement pattern, not by muscle name: squat, lunge, hinge, horizontal/vertical push and
   pull, isolation patterns, core patterns. Filters, in order: equipment owned, body areas to protect, low-impact,
   the user's excluded exercises, minimum level. Then: bodyweight-only or ladder patterns use the person's current rung
-  (chosen variant rotates by block); loaded patterns take the best equipment. **Exercises change only at a block
-  boundary**, never week to week, otherwise progression cannot be measured.
+  (the rung below is used for variety on other days); loaded patterns take the best equipment. Bodyweight variations are
+  never picked above the person's rung, even if the easier ones are excluded (the slot is skipped instead). Fallback
+  patterns stay in the same muscle group. **Exercises change only at a block boundary**, never week to week,
+  otherwise progression cannot be measured. Different days of the week can use different variants.
 * **Warm-up.** Three mobility drills chosen for the day's muscles (about 3 minutes) plus **ramp-up sets** for the first
   loaded compound (50% x 8, 70% x 5, and 85% x 2 when the working weight is 40 kg or more).
 
@@ -101,26 +108,54 @@ Double progression with the reps from the last time that exercise was logged. `m
 
 Load steps: dumbbells 1 kg (<10 kg), 2 kg (<30 kg), 2.5 kg above; barbell and machine 2.5 kg upper body, 5 kg legs.
 
-**Bodyweight:** when every set reaches `max` the person moves to the next **rung** (reset to `min`). If there is no
-next rung available (equipment, protected body area), the rep ceiling extends by 3 up to 25. Two failed sessions in
-a row on a rung move them one rung back. **Holds:** same rules in seconds; +5-10 s until 60 s, then next rung.
+**Bodyweight:** when every set reaches `max` the person moves to the next **rung** (reset to `min`), unless that
+rung's exercises are excluded (equipment, protected body area): then the rep ceiling extends by 3 up to 25 and finally
+a set is added. Stepping back a rung needs **three** consecutive sessions where most sets fall 3+ reps short of the
+minimum. A ladder changes rung at most once every 14 days, so a hard week cannot cause back-and-forth.
+**Holds:** same rules in seconds; +5-10 s until 90 s.
 
 ## 6. Autoregulation
 
-* **Session feedback** (too easy / just right / too hard) moves a difficulty offset from -3 to +3 (also -1 if
-  fewer than 60% of the planned sets were completed). At +2 or more main lifts get one extra set, at -2 or less one
-  fewer. Passing the ends changes the person's level up or down and resets the offset.
+* **Session feedback** (too easy / just right / too hard) moves a difficulty offset from -3 to +3, but only after
+  **two agreeing ratings in a row** (finishing under 60% of the planned sets counts immediately). At +2 or more the
+  first two compound lifts get an extra set, at -2 or less one fewer. Passing the ends changes the person's level
+  up or down and resets the offset, at most once every four weeks.
 * **Per-exercise effort** (easy / good / hard) feeds the progression table above.
-* **Fatigue score** over the last 3 sessions: 2 points per "too hard", 2 per session under 75% complete, 1 per exercise
-  where most sets missed `min`. **5 or more** triggers an automatic deload for the rest of that week.
+* **Fatigue score** over the last 3 sessions in the last two weeks: 2 points per "too hard", 2 per session under 75%
+  complete, 1 per exercise where most sets missed `min` (at most 2 per session). **5 or more, from at least two bad
+  sessions**, triggers an automatic deload for the rest of that week. It never fires in the first two weeks or before
+  four sessions exist, and not twice within 21 days.
 * **Deload week** is the last week of every block (beginner 6 weeks, intermediate 5, advanced 4) or triggered by
   fatigue: sets x0.6 (minimum 2), loads x0.9, cue "leave 4 in the tank". The next block starts after it.
-* **Comeback.** Days since the last workout: 10-20 loads x0.95, 21-34 x0.85, 35-59 x0.75, 60+ x0.65, and one set fewer.
-  A gap of 14+ days also restarts the block.
+* **Comeback**, measured **per exercise** (days since that lift was last logged): 10-20 days loads x0.95, 21-34 x0.85,
+  35-59 x0.75, 60+ x0.65. A gap of 14+ days since the last session also removes one set from sets of three or more and
+  restarts the block.
 * **Readiness today.** *Low:* one set fewer on exercises with 3+ sets, no load increases that session, +15% rest.
   *Great/normal:* as planned.
 
-## 7. What the person sees
+## 7. Alternatives ("I can't do this")
+
+Any exercise can be swapped from the workout screen or mid-workout. The person picks a reason and the engine
+suggests replacements in the same movement pattern first (other patterns of the same muscle only when fewer than
+three fit), never crossing between compound and isolation moves:
+
+| Reason | What is offered |
+|---|---|
+| Too hard | Easier versions first (lower rung, gentler equipment such as machine or bodyweight), smallest step down first. Never harder ones. |
+| Too easy | Harder variations. Never easier ones. For weighted lifts the honest answer is often "add weight", which the app already does. |
+| It hurts | Asks where; excludes everything that stresses those areas (and impact moves for knees). Offers to keep protecting those areas from now on. |
+| No equipment | Only exercises needing less equipment, closest first (barbell to dumbbells before bodyweight). |
+| Don't like it | Same movement first, then same muscles. |
+
+Comparison rules: bodyweight exercises compare by rung and level; loaded lifts compare by equipment demand (barbell,
+then dumbbell, then machine/cable) because load can always be changed; a loaded exercise swapped for its bodyweight
+version counts as easier. Suggestions respect equipment, protected areas, low-impact, excluded exercises and the
+person's rung. Each suggestion carries a one-line reason.
+
+The person chooses how long a swap lasts: this workout only, from now on (remembered preference), or never show the
+original again. If nothing fits, the sheet says so and offers to skip the exercise for today.
+
+## 8. What the person sees
 
 * Every exercise carries a one-line reason ("Up 2 kg: you hit 12 reps on every set", "Deload week: lighter to
   recover", "Comeback: 15% lighter after 3 weeks off").
@@ -128,7 +163,7 @@ a row on a rung move them one rung back. **Holds:** same rules in seconds; +5-10
 * Estimated one-rep max per lift (Epley: weight x (1 + reps / 30)) and personal records.
 * Messages after each workout when something changes (rung up, level up, deload).
 
-## 8. Safety rules
+## 9. Safety rules
 
 * Body areas marked as problems remove every exercise tagged as stressing them; nothing is "modified" silently.
 * "Low impact only" removes all jumping and impact exercises.

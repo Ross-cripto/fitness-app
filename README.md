@@ -6,28 +6,25 @@ Built with SwiftUI and Swift Charts. Requires iOS 17+.
 
 ## What it does
 
-- **Personal plan from day one.** Onboarding asks for level (beginner / intermediate / advanced), goal (build muscle / lose fat / stay fit), days per week, session length, equipment (none / dumbbells / full gym) and body stats.
-- **Daily programs.** A weekly schedule is generated from those answers: full body, upper/lower, or push/pull/legs depending on days per week. Exercises rotate every week so it doesn't go stale.
-- **Adaptive.**
-  - After each workout you rate it *too easy / just right / too hard*. That moves an intensity dial that changes sets, reps, hold times and rest.
-  - Push the dial far enough and your level changes automatically (up or down).
-  - Finishing less than 60% of a session counts as "too hard" whatever you tapped.
-  - Come back after 10+ days off and the next sessions are eased down.
-- **Your weights matter.** Starting weights are estimated from body weight, level and exercise. After that they follow your logs: hit every rep and it goes up, fall well short and it drops, otherwise it holds. Metric or imperial.
-- **Progress.** Weekly calories and minutes against what your plan asked for, daily-minutes chart, body-weight trend, personal records, workout streak.
-- **Workout player.** Per-set reps/weight steppers, timed holds, rest timer, screen stays awake, swap any exercise for an alternative.
-- **Animated demonstrations.** Every one of the 74 exercises has a looping figure animation showing the actual movement, with props (bench, chair, bar, dumbbells, barbell, cables). They play in the workout player, the workout list and the exercise sheet. Drawn in code from bundled data, so they work offline; they respect *Reduce Motion*.
-- **Apple Health.** Optional. Finished workouts (with energy burned) and body weight are saved to Health; today's steps and active energy (including Apple Watch) are read back and shown on the home and Progress screens; you can pull your latest weight from Health. Turn it on in onboarding or *Settings*. Nothing leaves your device.
-- **How-to videos.** Every exercise has a *Watch a video on YouTube* link (exercise sheet and workout player). By default it opens a YouTube search for proper-form tutorials of that exercise; to pin a specific video, add its URL to `ExerciseLibrary.curatedVideos`.
-- **Explore.** Searchable library of 74 exercises with animation and step-by-step instructions.
-- **Quick workouts.** 10-minute blast, wall/no-equipment full body, mobility & stretch.
+- **Onboarding that sets you up properly.** Goal (build muscle, get stronger, lose fat, general fitness), training history, an optional strength check (push-ups, squats, plank, pull-ups), the actual weekdays you can train, session length, equipment (including your heaviest dumbbell), body areas to protect (knees, lower back, shoulders, wrists), low-impact mode, sex, age, weight and height. It ends with a preview of your plan. No accounts, no sign-in, no tracking.
+- **A precise, explainable engine** (see [docs/ENGINE.md](docs/ENGINE.md)). Exercises are chosen by movement pattern, sized to weekly sets-per-muscle targets, fitted to your time, and never violate your protected areas or equipment. Every exercise shows *why* it's prescribed ("Up 2 kg: you hit 10 reps on every set").
+- **Real progression.** Double progression per exercise (reps first, then load), correct load steps (dumbbell caps respected), bodyweight *ladders* (wall → knee → full → decline push-ups and so on) and holds that progress in seconds, plus deloads every few weeks, automatic deloads when you're worn out, gentle comebacks per lift after time off, and a daily "how do you feel" check.
+- **Warm-up done for you.** Mobility drills for the day's muscles and ramp-up sets before your first heavy lift.
+- **"I can't do this."** Swap any exercise by reason (too hard, too easy, it hurts, no equipment, don't like it) and get fitting alternatives, each with a one-line explanation. Choose whether it's just for today, remembered, or the original is never shown again.
+- **Animated demonstrations.** All 75 exercises have a looping figure animation, with props (bench, chair, bar, dumbbells, barbell, cables), drawn in code from bundled data. Works offline and respects *Reduce Motion*.
+- **Progress.** Weekly calories and minutes against your plan, weekly volume per muscle vs target, estimated 1RM and personal records, body-weight trend, streak.
+- **Apple Health** (optional). Saves finished workouts and body weight; reads steps and active energy (including Apple Watch). Nothing leaves your device.
+- **How-to videos.** Every exercise links to a YouTube proper-form search (curated URLs supported in `ExerciseLibrary.curatedVideos`).
+- **Quick workouts.** 10-minute blast, no-equipment full body, mobility & stretch.
+
+| Onboarding | Plan & swaps |
+|---|---|
+| ![Onboarding](docs/app-screens-3.png) | ![Workout, swap, progress](docs/app-screens-4.png) |
 
 ![Screens](docs/app-screens-1.png)
 ![Screens](docs/app-screens-2.png)
 
-*(Mockups rendered from the app's layout and real animation data, not simulator screenshots.)*
-
-The UI follows the three reference screens: Workouts home (streak, stats, workout cards), Workout detail (dark hero, exercise list with swap, *Start Workout*), and Progress (date strip, Calorie and Duration cards).
+*(Mockups rendered from the app's layout and real engine output, not simulator screenshots.)*
 
 ## Run it
 
@@ -41,7 +38,16 @@ open Momentum.xcodeproj
 
 Pick an iPhone simulator (or your device) and press Run. To install on your own iPhone for free, select your Apple ID under *Signing & Capabilities → Team* (a free Apple ID works; the app just needs re-installing every 7 days).
 
-Run the tests with `⌘U`, or:
+Run the tests with `⌘U`. The engine and models are also a Swift package, so on any machine (including Linux CI) you can run the 120+ engine tests and a 16-week simulation without Xcode:
+
+```sh
+swift test
+swift run EngineSim plans   # sample plans for four different people
+swift run EngineSim sim     # 16-week simulation with a synthetic athlete (add -v for reasons)
+swift run EngineSim alts    # alternatives for each swap reason
+```
+
+Or the iOS tests from the command line:
 
 ```sh
 xcodebuild test -project Momentum.xcodeproj -scheme Momentum \
@@ -56,11 +62,13 @@ A GitHub Actions workflow (`.github/workflows/ios.yml`) builds and runs the test
 Momentum/
   App/          App entry point, root + tab view
   Models/       Data types and the built-in exercise library
-  Engine/       PlanGenerator (weekly plan), AdaptiveEngine (difficulty), WeightAdvisor (progressive overload)
+  Engine/       Assessment, PlanGenerator, Progression, Periodization (blocks, deloads, fatigue, volume), Alternatives, AdaptiveEngine
   Store/        AppStore: state + JSON persistence in Documents/
   Design/       Theme, shared components, FigureView (animation renderer) and MotionData (generated)
   Views/        Onboarding, Workouts, Progress, Explore, Settings
-MomentumTests/  Unit tests for the engine
+MomentumTests/  Unit tests for the engine and models
+Tools/EngineSim/ Plan printer and longitudinal simulator
+docs/           ENGINE.md (the specification) and screen mockups
 tools/          Python authoring + preview tools for the exercise animations
 project.yml     XcodeGen project definition
 ```
@@ -69,9 +77,10 @@ project.yml     XcodeGen project definition
 
 ## Tweaking the training logic
 
-- Add or edit exercises in `Models/ExerciseLibrary.swift`. `loadRatio` is a typical working weight as a fraction of body weight (per hand for dumbbells).
-- Change splits and muscle order in `DayFocus` (`Engine/PlanGenerator.swift`).
-- Change how fast the app adapts in `AdaptiveEngine.evaluate`.
+- Add or edit exercises in `Models/ExerciseLibrary.swift` (and give them a movement pattern, stress tags and ladder rung in `Models/ExerciseMeta.swift`, plus an animation in `tools/`). `loadRatio` is a typical working weight as a fraction of body weight.
+- Change templates in `SessionFocus` and weekly targets in `VolumePlanner`.
+- Change progression rules in `Progression`, deloads and fatigue in `Periodization`, level/rung changes in `AdaptiveEngine`.
+- Every rule is written down in [docs/ENGINE.md](docs/ENGINE.md); change both together.
 
 ## Known limitations
 

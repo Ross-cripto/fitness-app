@@ -278,3 +278,171 @@ def onboarding_health():
  <div class="row" style="gap:12px;padding:14px;border-radius:16px;background:#f2f2f7;margin-top:22px"><div style="flex:1"><div style="font-size:16px;font-weight:600;display:flex;gap:8px;align-items:center">{ic('heart', 17, HEALTH)}Connect Apple Health</div><div style="font-size:13px;color:#8e8e93;margin-top:3px;line-height:1.3">Save workouts and weight to Health and show your steps.</div></div><div class="tog"></div></div>
  <div class="row" style="gap:8px;font-size:13px;color:#8e8e93;margin-top:16px">🔒 Nothing leaves your phone. There is no account and no tracking.</div></div>
 <div class="row" style="position:absolute;left:0;right:0;bottom:30px;justify-content:space-between;padding:0 24px"><span style="font-size:16px;font-weight:600;color:#8e8e93">Back</span><span class="pill">Build my plan</span></div>''')
+
+
+# ---------------------------------------------------------------- engine-driven screens (mock_data.json)
+import json as _json, os as _os
+D = _json.load(open(_os.path.join(_os.path.dirname(__file__), 'mock_data.json')))
+MUSCLE_OF = {e['id']: e['muscle'] for e in D['workout']['exercises']}
+
+
+def choice(title, selected):
+    return f'''<div class="row" style="justify-content:space-between;padding:13px 14px;border-radius:14px;background:#f2f2f7;margin-bottom:8px;border:2px solid {PINK if selected else 'transparent'}">
+<span style="font-size:16px;font-weight:500">{title}</span><span style="width:20px;height:20px;border-radius:50%;border:2px solid {PINK if selected else 'rgba(0,0,0,.2)'};background:{PINK if selected else 'transparent'};display:flex;align-items:center;justify-content:center">{ic('check', 11, '#fff') if selected else ''}</span></div>'''
+
+
+def footer(primary):
+    return f'''<div class="row" style="position:absolute;left:0;right:0;bottom:30px;justify-content:space-between;padding:0 24px"><span style="font-size:16px;font-weight:600;color:#8e8e93">Back</span><span class="pill">{primary}</span></div>'''
+
+
+def onboarding_experience():
+    hist = [('Never, or just starting', False), ('Less than 6 months', False), ('6 months to 2 years', True), ('More than 2 years', False)]
+    freq = [('None lately', False), ('1-2 times a week', False), ('3-4 times a week', True), ('5+ times a week', False)]
+    return phone(onboarding_top(2) + f'''<div style="padding:22px 24px">
+ <div style="font-size:32px;font-weight:700;letter-spacing:-.6px">Your experience</div>
+ <div style="font-size:15px;color:#8e8e93;margin:6px 0 14px;line-height:1.35">Be honest. Starting a little easier is how progress lasts.</div>
+ <div style="font-size:14px;font-weight:600;color:#8e8e93;margin:6px 0 8px">How long have you trained consistently?</div>
+ {''.join(choice(t, s) for t, s in hist)}
+ <div style="font-size:14px;font-weight:600;color:#8e8e93;margin:14px 0 8px">How often in the last three months?</div>
+ {''.join(choice(t, s) for t, s in freq)}</div>''' + footer('Continue'))
+
+
+def check_row(title, hint, value):
+    return f'''<div class="row" style="justify-content:space-between;padding:14px;border-radius:14px;background:#f2f2f7;margin-bottom:10px">
+<div><div style="font-size:16px;font-weight:600">{title}</div><div style="font-size:12px;color:#8e8e93;margin-top:2px">{hint}</div></div>
+<span style="font-size:15px;font-weight:600;color:{PINK if value != 'Skip' else '#8e8e93'}">{value} <span style="font-size:11px">⌄</span></span></div>'''
+
+
+def onboarding_check():
+    return phone(onboarding_top(3) + f'''<div style="padding:22px 24px">
+ <div style="font-size:32px;font-weight:700;letter-spacing:-.6px">A quick strength check</div>
+ <div style="font-size:15px;color:#8e8e93;margin:6px 0 16px;line-height:1.35">Optional. It lets us start each movement at the right difficulty. Skip anything you'd rather not try.</div>
+ {check_row('Push-ups', 'In a row, with good form', '15-24')}
+ {check_row('Bodyweight squats', 'In a row, to parallel', '30-44')}
+ {check_row('Plank hold', 'On forearms, straight body', '45-89 s')}
+ {check_row('Pull-ups', 'Full reps, no swinging', 'None')}
+ <div class="row" style="gap:8px;font-size:12px;color:#8e8e93;margin-top:8px;line-height:1.4;align-items:flex-start">ⓘ <span>Nothing here is judged. If a movement turns out too easy or hard, the app moves you up or down on its own.</span></div></div>''' + footer('Continue'))
+
+
+def onboarding_schedule():
+    days = [('Mon', 1), ('Tue', 1), ('Wed', 0), ('Thu', 1), ('Fri', 1), ('Sat', 0), ('Sun', 0)]
+    chips = ''.join(f'<span style="flex:1;text-align:center;padding:12px 0;border-radius:10px;font-size:13px;font-weight:600;background:{PINK if on else "rgba(0,0,0,.07)"};color:{"#fff" if on else "#000"}">{d}</span>' for d, on in days)
+    mins = ''.join(f'<span style="flex:1;text-align:center;padding:6px 0;font-size:14px;{"background:#fff;border-radius:7px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.15)" if m == 45 else ""}">{m} min</span>' for m in (20, 30, 45, 60, 90))
+    return phone(onboarding_top(4) + f'''<div style="padding:22px 24px">
+ <div style="font-size:32px;font-weight:700;letter-spacing:-.6px">Your schedule</div>
+ <div style="font-size:15px;color:#8e8e93;margin:6px 0 16px;line-height:1.35">Pick the days you can really train. We build the split around them.</div>
+ <div style="display:flex;gap:6px">{chips}</div>
+ <div style="font-size:14px;color:#8e8e93;margin:14px 0 0;line-height:1.4"><b style="color:#000">4</b> days a week: Upper Body · Lower Body · Upper Body · Lower Body</div>
+ <div style="font-size:14px;font-weight:600;color:#8e8e93;margin:22px 0 8px">Time you have per session</div>
+ <div class="row" style="background:rgba(120,120,128,.12);border-radius:9px;padding:2px">{mins}</div>
+ <div style="font-size:12px;color:#8e8e93;margin-top:8px;line-height:1.4">This is a ceiling. If your level needs less volume to make progress, sessions will be shorter and we'll say so.</div></div>''' + footer('Continue'))
+
+
+def plan_card(title, icon, body):
+    return f'''<div style="padding:13px 14px;border-radius:16px;background:#f2f2f7;margin-bottom:12px"><div style="font-size:14px;font-weight:600;color:{PINK};margin-bottom:7px">{ic(icon, 15, PINK, 'vertical-align:-3px;margin-right:6px')}{title}</div><div style="font-size:13px;line-height:1.5">{body}</div></div>'''
+
+
+def onboarding_plan():
+    notes = '<br>'.join('• ' + n for n in D['placementNotes'])
+    week = ''.join(f'<div class="row" style="justify-content:space-between"><b style="font-weight:600">{w["day"]}</b><span style="color:#8e8e93">{w["title"]} · ~{w["minutes"]} min</span></div>' for w in D['week'])
+    vol = ''.join(f'<div class="row" style="justify-content:space-between"><b style="font-weight:500">{v["muscle"]}</b><span style="color:#8e8e93">{v["planned"]} planned · goal {v["low"]}-{v["high"]}</span></div>' for v in D['volume'])
+    adapt = '<br>'.join(['• Weights and reps move up when you hit the top of the range, and hold or drop when you don\'t.', f'• A lighter deload week every {D["blockLength"]} weeks, or sooner if you\'re worn out.', '• Swap any exercise you can\'t do.'])
+    return phone(onboarding_top(7) + f'''<div style="padding:16px 24px;height:770px;overflow:hidden">
+ <div style="font-size:28px;font-weight:700;letter-spacing:-.6px;margin-bottom:4px">{D['name']}, here's your plan</div>
+ <div style="font-size:14px;color:#8e8e93;margin-bottom:12px">Built from your answers. It changes as you train.</div>
+ {plan_card('Where you start', 'walk', notes)}
+ {plan_card('Your week', 'timer', week)}
+ {plan_card('Weekly sets per muscle', 'chart', vol)}
+ {plan_card('How it adapts', 'flame', adapt)}</div>
+<div class="row" style="position:absolute;left:0;right:0;bottom:0;padding:14px 24px 30px;justify-content:space-between;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 35%)"><span style="font-size:16px;font-weight:600;color:#8e8e93">Back</span><span class="pill">Start training</span></div>''')
+
+
+def detail_engine():
+    w = D['workout']
+    a, b = GRAD['chest']
+    phase = w['phase']
+    rows = ''
+    for e in w['exercises'][:5]:
+        m = MUSCLE_OF.get(e['id'], 'chest')
+        ga, gb = GRAD.get(m, GRAD['chest'])
+        sub = e['label'] + (' · ' + e['weight'] if e.get('weight') else '')
+        reason = f'<div style="font-size:11px;font-weight:500;color:rgba(52,199,89,.9);margin-top:4px;margin-left:88px">{e["reason"]}</div>' if e.get('reason') else ''
+        rows += f'''<div style="margin-bottom:13px"><div class="row" style="gap:12px"><div style="width:76px;height:56px;border-radius:8px;background:linear-gradient(135deg,{ga},{gb});overflow:hidden;display:flex;align-items:center;justify-content:center">{fig_svg(e['id'], 68, 48, frame=1, ghost=False, ground=False)}</div>
+<div style="flex:1"><div style="font-size:15px;font-weight:600">{e['name']}</div><div style="font-size:12px;font-weight:500;color:rgba(255,255,255,.6);margin-top:3px">{sub}</div></div><div style="width:34px;text-align:center;color:rgba(255,255,255,.75)">{ic('swap', 18)}</div></div>{reason}</div>'''
+    return phone(f'''<div style="position:absolute;inset:0;background:#000"></div>
+<div style="position:absolute;left:0;right:0;top:0;height:520px;background:linear-gradient(180deg,{a},#000 78%)"></div>
+<div style="position:absolute;left:14px;top:62px">{ic('chev', 26, '#fff', 'transform:rotate(180deg)')}</div>
+<div style="position:absolute;left:20px;right:20px;top:112px">
+ <div class="row" style="gap:20px;margin-bottom:6px">{stat('flame', w['calories'], 'cal', PINK, 20)}{stat('timer', w['minutes'], 'min', GREEN, 20)}</div>
+ <div style="font-size:40px;font-weight:700;letter-spacing:-1px;line-height:1.05">{w['title']}</div>
+ <div class="row" style="gap:8px;margin:3px 0 10px"><span style="font-size:14px;font-weight:500;color:rgba(255,255,255,.65)">{w['subtitle']}</span><span style="font-size:11px;font-weight:700;color:{GREEN};padding:3px 8px;border-radius:99px;background:rgba(255,255,255,.1)">{phase['label']}</span></div>
+ <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:6px">How do you feel today?</div>
+ <div class="row" style="gap:8px;margin-bottom:12px">{''.join(f'<span style="flex:1;text-align:center;padding:9px 0;border-radius:10px;font-size:13px;font-weight:600;background:{PINK if t == "Okay" else "rgba(255,255,255,.1)"};color:{"#fff" if t == "Okay" else "rgba(255,255,255,.7)"}">{t}</span>' for t in ('Rough', 'Okay', 'Great'))}</div>
+ <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:4px">Warm-up · {len(w['warmup'])} drills</div>
+ <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:12px">{' · '.join(w['warmup'])}</div>
+ <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:8px">Workout</div>
+ {rows}</div>
+<div style="position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(180deg,transparent,#000 60%)"></div>
+<div style="position:absolute;left:0;right:0;bottom:34px;text-align:center"><span class="pill">Start Workout</span></div>''', dark=True)
+
+
+def player_engine():
+    e = D['workout']['exercises'][0]
+    ga, gb = GRAD['chest']
+    ramp = ''.join(f'<div class="row" style="gap:10px;padding:11px 12px;border-radius:12px;background:rgba(255,255,255,.05);margin-bottom:7px">{ic("check", 18, GREEN if i == 0 else "rgba(255,255,255,.35)")}<span style="font-size:15px;font-weight:500;flex:1">{r}</span><span style="font-size:12px;color:rgba(255,255,255,.4)">easy</span></div>' for i, r in enumerate(e['ramp']))
+    return phone(f'''<div style="padding:62px 20px 0;height:800px;overflow:hidden">
+ <div class="row" style="justify-content:space-between"><div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center">{ic('x', 16, '#fff')}</div>
+ <span style="font-size:14px;font-weight:600;color:rgba(255,255,255,.7)">Exercise 1 of 6</span><span style="width:40px"></span></div>
+ <div style="height:6px;border-radius:9px;background:rgba(255,255,255,.1);margin:12px 0 14px"><div style="width:14%;height:100%;border-radius:9px;background:{PINK}"></div></div>
+ <div style="height:170px;border-radius:20px;background:linear-gradient(135deg,{ga},{gb});display:flex;align-items:center;justify-content:center;margin-bottom:10px">{fig_svg(e['id'], 300, 150, frame=1, ghost=True)}</div>
+ <div style="font-size:24px;font-weight:700">{e['name']}</div>
+ <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,.6);margin:2px 0 6px">Chest · {e['label']}</div>
+ <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,.75);margin-bottom:3px">◔ Stop with {e['rir']} rep in the tank</div>
+ <div style="font-size:12px;font-weight:500;color:rgba(52,199,89,.9);margin-bottom:8px">{e['reason']}</div>
+ <div style="font-size:14px;font-weight:600;color:{PINK};margin-bottom:12px">⇄ Can't do this one?</div>
+ <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:8px">Warm-up sets (light, not counted)</div>{ramp}
+ <div class="row" style="gap:14px;padding:13px;border-radius:16px;background:rgba(255,255,255,.06);margin-top:6px;margin-bottom:9px"><div style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px">1</div><div style="flex:1;font-size:16px;font-weight:600">9 reps<div style="font-size:14px;font-weight:500;color:rgba(255,255,255,.7);margin-top:5px">{e['weight']}</div></div><div style="width:46px;height:46px;border-radius:50%;background:{GREEN};display:flex;align-items:center;justify-content:center">{ic('check', 18, '#fff')}</div></div>
+ <div style="padding:14px;border-radius:16px;background:rgba(255,255,255,.05)"><div style="font-size:15px;font-weight:600;margin-bottom:3px">How did {e['name']} feel?</div><div style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:8px">This decides whether the weight or reps go up next time.</div>
+ <div class="row" style="gap:8px">{''.join(f'<span style="flex:1;text-align:center;padding:10px 0;border-radius:10px;font-size:14px;font-weight:600;background:{PINK if t == "Good" else "rgba(255,255,255,.08)"}">{t}</span>' for t in ('Easy', 'Good', 'Hard'))}</div></div></div>''', dark=True)
+
+
+def swap_sheet():
+    alts = D['alternatives']['tooHard']
+    reasons = [('arrow.down', 'Too hard for me', True), ('up', 'Too easy', False), ('bandage', 'It hurts or feels wrong', False), ('dumbbell', "I don't have the equipment", False), ('thumb', 'I just don\'t like it', False)]
+    icons = {'arrow.down': '↓', 'up': '↑', 'bandage': '✚', 'dumbbell': '🏋', 'thumb': '👎'}
+    rr = ''.join(f'<div class="row" style="justify-content:space-between;padding:12px 0;border-top:1px solid rgba(0,0,0,.07)"><span style="font-size:16px;display:flex;gap:12px"><span style="color:{PINK};width:20px;text-align:center">{icons[i]}</span>{t}</span>{ic("check", 16, PINK) if sel else ""}</div>' for i, t, sel in reasons)
+    rel_c = {'Easier': GREEN, 'Similar': '#8e8e93', 'Harder': AMBER}
+    ga, gb = GRAD['chest']
+    ar = ''
+    for k, a in enumerate(alts[:3]):
+        chosen = k == 1
+        ar += f'''<div class="row" style="gap:12px;padding:10px 0;border-top:1px solid rgba(0,0,0,.07)"><div style="width:64px;height:50px;border-radius:8px;background:linear-gradient(135deg,{ga},{gb});display:flex;align-items:center;justify-content:center;overflow:hidden">{fig_svg(a['id'], 58, 42, frame=1, ghost=False, ground=False)}</div>
+<div style="flex:1"><div class="row" style="gap:6px"><span style="font-size:16px;font-weight:600">{a['name']}</span><span style="font-size:11px;font-weight:700;color:{rel_c[a['relation']]};padding:2px 6px;border-radius:99px;background:{rel_c[a['relation']]}22">{a['relation']}</span></div><div style="font-size:13px;color:#8e8e93;margin-top:2px">{a['why']}</div></div>
+<span style="width:22px;height:22px;border-radius:50%;border:2px solid {PINK if chosen else 'rgba(0,0,0,.2)'};background:{PINK if chosen else 'transparent'};display:flex;align-items:center;justify-content:center">{ic('check', 12, '#fff') if chosen else ''}</span></div>'''
+    scope = ''.join(f'<div class="row" style="justify-content:space-between;padding:11px 0;border-top:1px solid rgba(0,0,0,.07);font-size:15px"><span>{t}</span>{ic("check", 16, PINK) if sel else ""}</div>' for t, sel in (('Just this workout', False), ('Use this from now on', True), ('Never show the original again', False)))
+    return phone(f'''<div style="position:absolute;inset:0;background:#7d7d80"></div>
+<div style="position:absolute;left:0;right:0;top:52px;bottom:0;background:#f2f2f7;border-radius:38px 38px 0 0;padding:16px 20px;overflow:hidden">
+ <div class="row" style="justify-content:space-between;margin-bottom:10px"><span style="width:60px"></span><span style="font-size:17px;font-weight:600">Swap exercise</span><span style="font-size:17px;color:{PINK};width:60px;text-align:right">Cancel</span></div>
+ <div style="font-size:12px;font-weight:600;color:#8e8e93;margin:6px 0 4px">WHY CAN'T YOU DO {D['swapExercise']['name'].upper()}?</div>
+ <div style="background:#fff;border-radius:14px;padding:0 14px">{rr}</div>
+ <div style="font-size:12px;font-weight:600;color:#8e8e93;margin:14px 0 4px">TRY INSTEAD</div>
+ <div style="background:#fff;border-radius:14px;padding:0 14px">{ar}</div>
+ <div style="font-size:12px;font-weight:600;color:#8e8e93;margin:14px 0 4px">KEEP THIS SWAP</div>
+ <div style="background:#fff;border-radius:14px;padding:0 14px">{scope}</div>
+ <div style="margin-top:12px;background:{PINK};color:#fff;text-align:center;border-radius:12px;padding:13px;font-size:16px;font-weight:600">Swap to {alts[1]['name']}</div></div>''')
+
+
+def progress_volume():
+    vol = ''.join(f'''<div style="margin-bottom:11px"><div class="row" style="justify-content:space-between;margin-bottom:4px"><span style="font-size:14px;font-weight:500">{v['muscle']}</span><span style="font-size:13px;font-weight:600;color:{GREEN if v['planned'] >= v['low'] else '#8e8e93'}">{min(v['planned'], v['high'] + 2) - (2 if v['muscle'] == 'Legs' else 1)} / {v['low']}-{v['high']}</span></div><div style="height:6px;border-radius:9px;background:rgba(0,0,0,.08)"><div style="width:{min(100, (v['planned'] - 1) / v['high'] * 100):.0f}%;height:100%;border-radius:9px;background:{GREEN if v['planned'] >= v['low'] else '#7a5cff'}"></div></div></div>''' for v in D['volume'])
+    purple = '#7a5cff'
+    return phone(f'''<div style="padding:62px 20px 0">
+ <div class="card" style="margin-bottom:16px">
+  <div style="width:42px;height:42px;border-radius:50%;background:{purple};display:flex;align-items:center;justify-content:center">{ic('chart', 20, '#fff')}</div>
+  <div style="font-size:17px;font-weight:600;color:{purple};margin:12px 0 6px">Weekly volume</div>
+  <div style="font-size:13px;color:#8e8e93;line-height:1.35;margin-bottom:12px">Hard sets per muscle this week against the range that builds progress at your level.</div>
+  {vol}
+  <div style="font-size:12px;color:#8e8e93;margin-top:4px">{D['workout']['phase']['label']} · stop {D['workout']['phase']['rir']} rep short of failure</div></div>
+ <div class="card">
+  <div style="width:42px;height:42px;border-radius:50%;background:{AMBER};display:flex;align-items:center;justify-content:center">{ic('trophy', 21, '#fff')}</div>
+  <div style="font-size:17px;font-weight:600;color:{AMBER};margin:12px 0 10px">Personal records</div>
+  {''.join(f'<div class="row" style="justify-content:space-between;padding:5px 0"><span style="font-size:15px;font-weight:500">{n}</span><span style="text-align:right"><b style="font-size:15px">{v}</b><div style="font-size:11px;color:#8e8e93">est. 1RM {e}</div></span></div>' for n, v, e in [('Dumbbell Bench Press', '24 kg', '34 kg'), ('Goblet Squat', '24 kg', '39 kg'), ('One-Arm Dumbbell Row', '24 kg', '36 kg')])}</div></div>''', tabbar=0)

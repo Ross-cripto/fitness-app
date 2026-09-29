@@ -26,6 +26,8 @@ def main():
     from playwright.sync_api import sync_playwright
     ensure_fonts()
     sets = {
+        'app-screens-3': [S.onboarding_experience(), S.onboarding_check(), S.onboarding_schedule(), S.onboarding_plan()],
+        'app-screens-4': [S.detail_engine(), S.player_engine(), S.swap_sheet(), S.progress_volume()],
         'app-screens-1': [S.home(), S.detail(), S.player(), S.sheet()],
         'app-screens-2': [S.progress_top(), S.progress_scrolled(), S.onboarding_level(), S.onboarding_health()],
     }

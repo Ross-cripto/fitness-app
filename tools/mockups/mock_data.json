@@ -1,0 +1,288 @@
+{
+  "alternatives" : {
+    "dislike" : [
+      {
+        "id" : "pushup",
+        "name" : "Push-Up",
+        "relation" : "Easier",
+        "why" : "Trains the same movement."
+      },
+      {
+        "id" : "knee_pushup",
+        "name" : "Knee Push-Up",
+        "relation" : "Easier",
+        "why" : "Trains the same movement."
+      },
+      {
+        "id" : "wall_pushup",
+        "name" : "Wall Push-Up",
+        "relation" : "Easier",
+        "why" : "Trains the same movement."
+      }
+    ],
+    "noEquipment" : [
+      {
+        "id" : "knee_pushup",
+        "name" : "Knee Push-Up",
+        "relation" : "Easier",
+        "why" : "No equipment needed."
+      },
+      {
+        "id" : "pushup",
+        "name" : "Push-Up",
+        "relation" : "Easier",
+        "why" : "No equipment needed."
+      },
+      {
+        "id" : "wall_pushup",
+        "name" : "Wall Push-Up",
+        "relation" : "Easier",
+        "why" : "No equipment needed."
+      }
+    ],
+    "pain" : [
+      {
+        "id" : "pushup",
+        "name" : "Push-Up",
+        "relation" : "Easier",
+        "why" : "Doesn't load your shoulders."
+      },
+      {
+        "id" : "knee_pushup",
+        "name" : "Knee Push-Up",
+        "relation" : "Easier",
+        "why" : "Doesn't load your shoulders."
+      },
+      {
+        "id" : "wall_pushup",
+        "name" : "Wall Push-Up",
+        "relation" : "Easier",
+        "why" : "Doesn't load your shoulders."
+      }
+    ],
+    "tooEasy" : [
+
+    ],
+    "tooHard" : [
+      {
+        "id" : "pushup",
+        "name" : "Push-Up",
+        "relation" : "Easier",
+        "why" : "Bodyweight version, no weight to manage."
+      },
+      {
+        "id" : "knee_pushup",
+        "name" : "Knee Push-Up",
+        "relation" : "Easier",
+        "why" : "Bodyweight version, no weight to manage."
+      },
+      {
+        "id" : "wall_pushup",
+        "name" : "Wall Push-Up",
+        "relation" : "Easier",
+        "why" : "Bodyweight version, no weight to manage."
+      }
+    ]
+  },
+  "blockLength" : 5,
+  "level" : "Intermediate",
+  "name" : "Alex",
+  "placementNotes" : [
+    "Starting level: Intermediate.",
+    "Pushing starts with push-ups.",
+    "Pulling starts with rows and back work.",
+    "Core work starts with side planks."
+  ],
+  "swapExercise" : {
+    "id" : "db_bench",
+    "name" : "Dumbbell Bench Press"
+  },
+  "volume" : [
+    {
+      "high" : 12,
+      "low" : 10,
+      "muscle" : "Chest",
+      "planned" : 11
+    },
+    {
+      "high" : 12,
+      "low" : 10,
+      "muscle" : "Back",
+      "planned" : 10
+    },
+    {
+      "high" : 18,
+      "low" : 14,
+      "muscle" : "Legs",
+      "planned" : 22
+    },
+    {
+      "high" : 8,
+      "low" : 6,
+      "muscle" : "Shoulders",
+      "planned" : 6
+    },
+    {
+      "high" : 10,
+      "low" : 6,
+      "muscle" : "Arms",
+      "planned" : 6
+    },
+    {
+      "high" : 8,
+      "low" : 6,
+      "muscle" : "Core",
+      "planned" : 6
+    }
+  ],
+  "week" : [
+    {
+      "day" : "Monday",
+      "minutes" : 46,
+      "title" : "Upper Body"
+    },
+    {
+      "day" : "Tuesday",
+      "minutes" : 36,
+      "title" : "Lower Body"
+    },
+    {
+      "day" : "Thursday",
+      "minutes" : 46,
+      "title" : "Upper Body"
+    },
+    {
+      "day" : "Friday",
+      "minutes" : 37,
+      "title" : "Lower Body"
+    }
+  ],
+  "workout" : {
+    "calories" : 150,
+    "exercises" : [
+      {
+        "id" : "db_bench",
+        "label" : "4 × 6-10",
+        "muscle" : "chest",
+        "name" : "Dumbbell Bench Press",
+        "ramp" : [
+          "12 kg × 8",
+          "18 kg × 4"
+        ],
+        "reason" : "Same weight: aim for 9 reps on every set.",
+        "repMax" : 10,
+        "repMin" : 6,
+        "rest" : 120,
+        "rir" : 1,
+        "sets" : 4,
+        "target" : 9,
+        "timed" : false,
+        "weight" : "24 kg"
+      },
+      {
+        "id" : "db_row",
+        "label" : "3 × 6-12",
+        "muscle" : "back",
+        "name" : "One-Arm Dumbbell Row",
+        "ramp" : [
+
+        ],
+        "reason" : "This is your heaviest dumbbell, so keep adding reps (up to 12).",
+        "repMax" : 12,
+        "repMin" : 6,
+        "rest" : 120,
+        "rir" : 1,
+        "sets" : 3,
+        "target" : 11,
+        "timed" : false,
+        "weight" : "24 kg"
+      },
+      {
+        "id" : "db_shoulder_press",
+        "label" : "3 × 6-10",
+        "muscle" : "shoulders",
+        "name" : "Dumbbell Shoulder Press",
+        "ramp" : [
+
+        ],
+        "reason" : "Same weight: aim for 8 reps on every set.",
+        "repMax" : 10,
+        "repMin" : 6,
+        "rest" : 120,
+        "rir" : 1,
+        "sets" : 3,
+        "target" : 8,
+        "timed" : false,
+        "weight" : "16 kg"
+      },
+      {
+        "id" : "db_bent_row",
+        "label" : "2 × 6-10",
+        "muscle" : "back",
+        "name" : "Bent-Over Dumbbell Row",
+        "ramp" : [
+
+        ],
+        "reason" : "Same weight: aim for 9 reps on every set.",
+        "repMax" : 10,
+        "repMin" : 6,
+        "rest" : 120,
+        "rir" : 1,
+        "sets" : 2,
+        "target" : 9,
+        "timed" : false,
+        "weight" : "20 kg"
+      },
+      {
+        "id" : "db_incline_press",
+        "label" : "2 × 6-10",
+        "muscle" : "chest",
+        "name" : "Incline Dumbbell Press",
+        "ramp" : [
+
+        ],
+        "reason" : "Up 2 kg: you hit 10 reps on every set.",
+        "repMax" : 10,
+        "repMin" : 6,
+        "rest" : 120,
+        "rir" : 1,
+        "sets" : 2,
+        "target" : 6,
+        "timed" : false,
+        "weight" : "18 kg"
+      },
+      {
+        "id" : "db_tricep_ext",
+        "label" : "3 × 10-15",
+        "muscle" : "arms",
+        "name" : "Overhead Triceps Extension",
+        "ramp" : [
+
+        ],
+        "reason" : "Up 1 kg: you hit 15 reps on every set.",
+        "repMax" : 15,
+        "repMin" : 10,
+        "rest" : 60,
+        "rir" : 1,
+        "sets" : 3,
+        "target" : 10,
+        "timed" : false,
+        "weight" : "10 kg"
+      }
+    ],
+    "minutes" : 46,
+    "phase" : {
+      "deload" : false,
+      "label" : "Week 3 of 4",
+      "rir" : 1
+    },
+    "sets" : 17,
+    "subtitle" : "Chest, back, shoulders, arms",
+    "title" : "Upper Body",
+    "warmup" : [
+      "Arm Circles",
+      "Thoracic Rotation",
+      "Cat-Cow"
+    ]
+  }
+}
