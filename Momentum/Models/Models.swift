@@ -275,6 +275,8 @@ struct UserProfile: Codable, Equatable {
     var trainingWeekdays: [Int] = []
     var limitations: [BodyArea] = []
     var lowImpactOnly: Bool = false
+    /// Whether a pull-up bar is available (a gym always has one). Without it, hanging exercises are never planned.
+    var hasPullUpBar: Bool = false
     /// Heaviest single dumbbell in kilograms. 0 means "no limit".
     var maxDumbbellKg: Double = 0
     var excludedExercises: [String] = []
@@ -327,6 +329,7 @@ struct UserProfile: Codable, Equatable {
         trainingWeekdays = value(.trainingWeekdays, d.trainingWeekdays)
         limitations = value(.limitations, d.limitations)
         lowImpactOnly = value(.lowImpactOnly, d.lowImpactOnly)
+        hasPullUpBar = value(.hasPullUpBar, d.hasPullUpBar)
         maxDumbbellKg = value(.maxDumbbellKg, d.maxDumbbellKg)
         excludedExercises = value(.excludedExercises, d.excludedExercises)
         swapPreferences = value(.swapPreferences, d.swapPreferences)

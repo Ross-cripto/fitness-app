@@ -308,6 +308,13 @@ struct OnboardingView: View {
                 .padding(14)
                 .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
             }
+
+            if draft.equipment != .fullGym {
+                Toggle(L("I have a pull-up bar"), isOn: $draft.hasPullUpBar)
+                    .tint(Theme.pink)
+                    .padding(14)
+                    .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
+            }
         }
     }
 

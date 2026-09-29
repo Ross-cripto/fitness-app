@@ -546,3 +546,61 @@ final class EngineRegressionTests: EnglishTestCase {
         XCTAssertEqual(Periodization.blockNumber(on: T.week(9), profile: restarted), 2)  // one past the old block 1
     }
 }
+
+final class PullUpBarTests: EnglishTestCase {
+    private func planned(_ p: UserProfile) -> Set<String> {
+        var ids = Set<String>()
+        for offset in 0..<14 {
+            let day = T.day(offset)
+            for item in PlanGenerator.workout(on: day, profile: p, history: [], now: day)?.exercises ?? [] { ids.insert(item.exerciseID) }
+        }
+        return ids
+    }
+
+    private func strongPuller(equipment: Equipment, bar: Bool) -> UserProfile {
+        var p = T.profile(level: .advanced, equipment: equipment, weekdays: [2, 3, 5, 6], minutes: 60)
+        p.check = FitnessCheck(pushups: 30, squats: 40, plankSeconds: 90, pullups: 8)
+        p.rungs = Assessment.place(history: .over2Years, frequency: .fivePlus, check: p.check).rungs
+        p.hasPullUpBar = bar
+        return p
+    }
+
+    func testNoBarNoPullUps() {
+        for equipment in [Equipment.bodyweight, .dumbbells] {
+            let ids = planned(strongPuller(equipment: equipment, bar: false))
+            XCTAssertFalse(ids.contains("pullup"), "\(equipment)")
+        }
+    }
+
+    func testABarBringsPullUpsBackForPeopleWhoCanDoThem() {
+        XCTAssertTrue(planned(strongPuller(equipment: .bodyweight, bar: true)).contains("pullup"))
+    }
+
+    func testGymsAlwaysHaveABar() {
+        XCTAssertTrue(PlanGenerator.isAllowed(ExerciseLibrary.exercise("pullup"), profile: strongPuller(equipment: .fullGym, bar: false)))
+    }
+
+    func testTheBackSlotIsStillFilledWithoutABar() {
+        let p = strongPuller(equipment: .bodyweight, bar: false)
+        let pulls = PlanGenerator.week(containing: T.monday, profile: p, history: [], now: T.monday)
+            .flatMap { $0.workout.exercises }
+            .filter { $0.exercise.muscle == .back }
+        XCTAssertFalse(pulls.isEmpty)
+    }
+
+    func testSwapsNeverSuggestPullUpsWithoutABar() {
+        let p = strongPuller(equipment: .bodyweight, bar: false)
+        let workout = PlanGenerator.workout(on: T.monday, profile: p, history: [], now: T.monday)!
+        for planned in workout.exercises {
+            for reason in SwapReason.allCases {
+                let ids = Alternatives.suggest(for: planned, in: workout, reason: reason, profile: p).map(\.exercise.id)
+                XCTAssertFalse(ids.contains("pullup"))
+            }
+        }
+    }
+
+    func testOldProfilesDefaultToNoBar() throws {
+        let profile = try JSONDecoder().decode(UserProfile.self, from: Data(#"{"name":"Sam"}"#.utf8))
+        XCTAssertFalse(profile.hasPullUpBar)
+    }
+}

@@ -140,3 +140,6 @@ PT.update({
     "{0} of {1} workouts done": "{0} de {1} treinos feitos",
     "New personal best": "Novo recorde pessoal",
 })
+
+ES.update({"I have a pull-up bar": "Tengo una barra de dominadas"})
+PT.update({"I have a pull-up bar": "Tenho uma barra de pull-up"})

@@ -35,7 +35,7 @@ catches it.
 | Squat | bodyweight squat / wall sit, jump squat |
 | Lunge | reverse lunge, split squat |
 | Hinge | glute bridge, single-leg bridge |
-| Pull | superman / snow angel, table row, pull-up |
+| Pull | superman / snow angel, table row, pull-up (only planned when the person says they have a pull-up bar; a gym always has one) |
 | Vertical push | plank shoulder tap, pike push-up, elevated pike |
 | Triceps | chair dip, close push-up, diamond push-up |
 | Core (stability) | dead bug, plank, side plank, hollow hold |

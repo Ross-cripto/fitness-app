@@ -43,6 +43,10 @@ struct SettingsView: View {
                     Picker(L("Equipment"), selection: $store.profile.equipment) {
                         ForEach(Equipment.allCases) { Text($0.title).tag($0) }
                     }
+                    if store.profile.equipment != .fullGym {
+                        Toggle(L("I have a pull-up bar"), isOn: $store.profile.hasPullUpBar)
+                            .tint(Theme.pink)
+                    }
                     if store.profile.equipment == .dumbbells {
                         Stepper(value: dumbbellBinding, in: 0...130, step: 1) {
                             Text(store.profile.maxDumbbellKg == 0

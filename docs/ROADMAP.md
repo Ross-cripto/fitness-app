@@ -35,7 +35,6 @@ Status: ✅ done · 🚧 in progress · ⬜ not started · 💬 needs a decision
 | ✅ | Training-day reminders (local notifications, no server) | The biggest driver of consistency; must be opt-in and quiet |
 | ⬜ | Rest timer that survives the app being backgrounded (local notification + haptic) | Currently ticks only while the app is open |
 | ⬜ | Home-screen widget: next workout and streak | |
-| ⬜ | Move a missed workout to another day | Real weeks are messy |
 
 ## 5. Better training
 
@@ -43,7 +42,7 @@ Status: ✅ done · 🚧 in progress · ⬜ not started · 💬 needs a decision
 |---|---|---|
 | ⬜ | Exercise library as data files (JSON) instead of Swift | Lets non-programmers add exercises and translations by pull request |
 | ⬜ | More exercises (target ~150): kettlebell, bands, TRX, cardio machines | Equipment beyond bodyweight/dumbbells/gym |
-| ⬜ | Equipment profiles: bands, kettlebells, pull-up bar, bench, "hotel gym" | Precise plans for real home setups |
+| 🚧 | Equipment profiles: pull-up bar ✅; bands, kettlebells, bench, "hotel gym" ⬜ | Precise plans for real home setups |
 | ⬜ | Custom exercises and your own notes per exercise | Everyone has a movement the library lacks |
 | ⬜ | Conditions and life stages presets (older adults, returning after injury, postpartum) written with professional review | Needs expert input, not just code |
 | ⬜ | Program templates (5×5, upper/lower, push/pull/legs) as alternatives to the automatic split | Some people want a known program |
