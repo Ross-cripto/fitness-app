@@ -42,7 +42,7 @@ Status: ✅ done · 🚧 in progress · ⬜ not started · 💬 needs a decision
 |---|---|---|
 | 🚧 | Property-based tests in CI ✅ (`InvariantTests`: random people over 12 simulated weeks; safety, load caps, determinism, adaptation limits, swap rules). Next: cover comeback/deload rules and multi-language output | A one-off fuzz run found eight real bugs; this keeps them fixed. Run more with `INVARIANT_SEED=… INVARIANT_CASES=300 swift test --filter InvariantTests` |
 | ⬜ | Review `ENGINE.md` against sports-science sources, with citations | The rules should be defensible, not just plausible |
-| ⬜ | Balance session lengths across the week (a beginner's plan showed ~14, ~23 and ~32 minutes on three days) | Even days feel fairer and match the time the person set |
+| ⬜ | Balance session lengths across the week: a beginner's plan showed ~14, ~23 and ~32 minutes on three days. Cause: every muscle that needs fewer sessions than there are days skips the *same* first session. A simple per-muscle stagger fixed that case (spread 23 → 2 min) but moved core work off lower-body days, which then padded with extra leg sets and overshot the weekly leg target, so it was not merged. A proper fix assigns muscles to sessions by load (keeping 48 h between hard sessions for a muscle) | Even days feel fairer and match the time the person set; the upper/lower split will still differ by design |
 | ⬜ | Exercise library as data files (JSON) instead of Swift | Lets non-programmers add exercises and translations by pull request |
 | ⬜ | More exercises (target ~150): kettlebell, bands, TRX, cardio machines | Equipment beyond bodyweight/dumbbells/gym |
 | 🚧 | Equipment profiles: pull-up bar ✅; bands, kettlebells, bench, "hotel gym" ⬜ | Precise plans for real home setups |
