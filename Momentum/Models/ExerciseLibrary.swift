@@ -7,6 +7,10 @@ enum ExerciseLibrary {
         byID[id] ?? all[0]
     }
 
+    /// Optional hand-picked video per exercise id, e.g. `"pushup": "https://www.youtube.com/watch?v=..."`.
+    /// Exercises without an entry link to a YouTube search for proper form instead.
+    static let curatedVideos: [String: String] = [:]
+
     static let byID: [String: Exercise] = {
         var map: [String: Exercise] = [:]
         for exercise in all { map[exercise.id] = exercise }
@@ -27,7 +31,7 @@ enum ExerciseLibrary {
     ) -> Exercise {
         Exercise(
             id: id,
-            name: name,
+            englishName: name,
             muscle: muscle,
             equipment: equipment,
             level: level,
@@ -35,7 +39,7 @@ enum ExerciseLibrary {
             met: met,
             loadRatio: load,
             symbol: symbol ?? muscle.symbol,
-            steps: steps
+            englishSteps: steps
         )
     }
 
@@ -58,6 +62,11 @@ enum ExerciseLibrary {
             "Lie on your back, knees bent, feet flat.",
             "Squeeze your glutes and lift your hips until your body is a straight line.",
             "Pause at the top, then lower with control."
+        ]),
+        ex("single_leg_bridge", "Single-Leg Glute Bridge", .legs, .bodyweight, .intermediate, met: 3.8, [
+            "Lie on your back, one foot flat, the other leg straight and lifted.",
+            "Drive through the planted heel and lift your hips until your body is in a line.",
+            "Keep your hips level, pause, then lower slowly. Switch legs after the set."
         ]),
         ex("calf_raise", "Calf Raise", .legs, .bodyweight, .beginner, met: 3.5, [
             "Stand tall, feet hip-width apart. Hold a wall for balance if needed.",

@@ -1,0 +1,24 @@
+name: Core engine tests (Linux)
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    container: swift:5.10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test the UI-free core
+        run: swift test
+
+  translations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Every string is translated and the generated tables are current
+        run: |
+          python3 tools/i18n/export.py --strict
+          python3 tools/i18n/export_exercises.py
+          git diff --exit-code Momentum/Models/LocalizationData.swift Momentum/Models/ExerciseTranslations.swift

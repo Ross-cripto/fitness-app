@@ -2,14 +2,20 @@ import SwiftUI
 
 struct OnboardingView: View {
     @EnvironmentObject private var store: AppStore
-    @State private var draft = UserProfile()
+    @EnvironmentObject private var health: HealthService
+    @State private var draft: UserProfile = {
+        var profile = UserProfile()
+        profile.trainingWeekdays = [2, 4, 6]
+        profile.sessionMinutes = 45
+        return profile
+    }()
     @State private var step = 0
 
-    private let lastStep = 4
+    private let lastStep = 7
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 ForEach(0...lastStep, id: \.self) { index in
                     Capsule()
                         .fill(index <= step ? Theme.pink : Color.primary.opacity(0.12))
@@ -36,10 +42,13 @@ struct OnboardingView: View {
     private var content: some View {
         switch step {
         case 0: welcomeStep
-        case 1: levelStep
-        case 2: goalStep
-        case 3: scheduleStep
-        default: bodyStep
+        case 1: goalStep
+        case 2: experienceStep
+        case 3: checkStep
+        case 4: scheduleStep
+        case 5: equipmentStep
+        case 6: bodyStep
+        default: planStep
         }
     }
 
@@ -54,8 +63,37 @@ struct OnboardingView: View {
         .padding(.bottom, 12)
     }
 
+    private func sectionLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(.secondary)
+            .padding(.top, 8)
+    }
+
+    // 0 ------------------------------------------------------------------
+    private var languagePicker: some View {
+        HStack(spacing: 8) {
+            ForEach(AppLanguage.allCases) { language in
+                let current = store.language == language
+                Button { store.profile.language = language } label: {
+                    Text(language.nativeName)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(current ? Color.white : Color.primary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(current ? Theme.pink : Color.primary.opacity(0.08)))
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(current ? .isSelected : [])
+            }
+            Spacer()
+        }
+    }
+
     private var welcomeStep: some View {
         VStack(alignment: .leading, spacing: 20) {
+            languagePicker
+
             ZStack {
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
                     .fill(LinearGradient(colors: [Theme.pink, Color(hex: 0xFF7A45)], startPoint: .topLeading, endPoint: .bottomTrailing))
@@ -67,39 +105,30 @@ struct OnboardingView: View {
             .padding(.top, 24)
 
             header(
-                "Momentum",
-                "Your free, private training plan. It adapts as you get stronger, and everything stays on this iPhone."
+                L("Momentum"),
+                L("A free training plan built around you. It learns from every workout, and everything stays on this iPhone.")
             )
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("What should we call you?")
+                Text(L("What should we call you?"))
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.secondary)
-                TextField("Your name", text: $draft.name)
+                TextField(L("Your name"), text: $draft.name)
                     .textContentType(.givenName)
                     .padding(14)
                     .background(RoundedRectangle(cornerRadius: 14).fill(Color(.secondarySystemGroupedBackground)))
             }
+
+            Label(L("No account, no sign-in, no tracking."), systemImage: "lock.fill")
+                .font(.system(size: 13))
+                .foregroundStyle(.secondary)
         }
     }
 
-    private var levelStep: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            header("Your experience", "We start at the right difficulty and adjust automatically after each workout.")
-            ForEach(FitnessLevel.allCases) { level in
-                OptionCard(
-                    symbol: symbol(for: level),
-                    title: level.title,
-                    subtitle: level.summary,
-                    selected: draft.level == level
-                ) { draft.level = level }
-            }
-        }
-    }
-
+    // 1 ------------------------------------------------------------------
     private var goalStep: some View {
         VStack(alignment: .leading, spacing: 12) {
-            header("Your goal", "This shapes reps, rest and how much cardio flow we add.")
+            header(L("Your main goal"), L("This decides rep ranges, rest times, weekly volume and whether we add cardio."))
             ForEach(Goal.allCases) { goal in
                 OptionCard(
                     symbol: goal.symbol,
@@ -111,30 +140,146 @@ struct OnboardingView: View {
         }
     }
 
-    private var scheduleStep: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            header("Your schedule", "Be realistic. Consistency beats ambition.")
+    // 2 ------------------------------------------------------------------
+    private var experienceStep: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            header(L("Your experience"), L("Be honest. Starting a little easier is how progress lasts."))
 
-            Stepper(value: $draft.daysPerWeek, in: 1...6) {
-                Text("**\(draft.daysPerWeek)** workout days per week")
+            sectionLabel(L("How long have you trained consistently?"))
+            ForEach(TrainingHistory.allCases) { option in
+                ChoiceRow(title: option.title, selected: draft.history == option) { draft.history = option }
             }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Session length")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                Picker("Session length", selection: $draft.sessionMinutes) {
-                    ForEach([20, 30, 45, 60], id: \.self) { minutes in
-                        Text("\(minutes) min").tag(minutes)
+            sectionLabel(L("How often in the last three months?"))
+            ForEach(RecentFrequency.allCases) { option in
+                ChoiceRow(title: option.title, selected: draft.frequency == option) { draft.frequency = option }
+            }
+        }
+    }
+
+    // 3 ------------------------------------------------------------------
+    private func checkPicker(
+        _ title: String,
+        _ hint: String,
+        selection: Binding<Int?>,
+        options: [(label: String, value: Int)]
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.system(size: 16, weight: .semibold))
+                    Text(hint).font(.system(size: 12)).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Picker(title, selection: selection) {
+                    Text(L("Skip")).tag(Int?.none)
+                    ForEach(options, id: \.value) { option in
+                        Text(option.label).tag(Int?.some(option.value))
                     }
                 }
-                .pickerStyle(.segmented)
+                .pickerStyle(.menu)
+                .tint(Theme.pink)
             }
+        }
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
+    }
 
-            Text("Equipment")
-                .font(.system(size: 14, weight: .semibold))
+    private var checkStep: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            header(L("A quick strength check"), L("Optional. It lets us start each movement at the right difficulty. Skip anything you'd rather not try."))
+
+            checkPicker(L("Push-ups"), L("In a row, with good form"), selection: $draft.check.pushups, options: [
+                (L("None yet"), 0), ("1-4", 3), ("5-14", 10), ("15-24", 20), ("25+", 30)
+            ])
+            checkPicker(L("Bodyweight squats"), L("In a row, to parallel"), selection: $draft.check.squats, options: [
+                (L("Under 15"), 10), ("15-29", 20), ("30-44", 35), ("45+", 50)
+            ])
+            checkPicker(L("Plank hold"), L("On forearms, straight body"), selection: $draft.check.plankSeconds, options: [
+                (L("Under 20 s"), 15), (L("20-44 s"), 30), (L("45-89 s"), 60), (L("90 s+"), 100)
+            ])
+            checkPicker(L("Pull-ups"), L("Full reps, no swinging"), selection: $draft.check.pullups, options: [
+                (L("None"), 0), ("1-2", 1), ("3-7", 5), ("8+", 10)
+            ])
+
+            Label(L("Nothing here is judged. If a movement turns out too easy or hard, the app moves you up or down on its own."), systemImage: "info.circle")
+                .font(.system(size: 13))
                 .foregroundStyle(.secondary)
                 .padding(.top, 4)
+        }
+    }
+
+    // 4 ------------------------------------------------------------------
+    private static let weekdayOrder = [2, 3, 4, 5, 6, 7, 1]
+
+    private func weekdayName(_ weekday: Int) -> String {
+        Loc.calendar.shortWeekdaySymbols[weekday - 1]
+    }
+
+    private func toggleWeekday(_ weekday: Int) {
+        var days = draft.trainingWeekdays
+        if let index = days.firstIndex(of: weekday) {
+            if days.count > 1 { days.remove(at: index) }
+        } else if days.count < 6 {
+            days.append(weekday)
+        }
+        draft.trainingWeekdays = days
+    }
+
+    private var scheduleSummary: String {
+        var preview = draft
+        preview.level = Assessment.place(draft).level
+        let titles = PlanGenerator.split(for: preview).map { $0.title }
+        return titles.joined(separator: " · ")
+    }
+
+    private var scheduleStep: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            header(L("Your schedule"), L("Pick the days you can really train. We build the split around them."))
+
+            HStack(spacing: 6) {
+                ForEach(Self.weekdayOrder, id: \.self) { weekday in
+                    let on = draft.trainingWeekdays.contains(weekday)
+                    Button { toggleWeekday(weekday) } label: {
+                        Text(weekdayName(weekday))
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(on ? Color.white : Color.primary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(on ? Theme.pink : Color.primary.opacity(0.08)))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(on ? .isSelected : [])
+                }
+            }
+
+            Group {
+                if draft.trainingWeekdays.count == 1 {
+                    LText("**{0}** day a week: {1}", draft.trainingWeekdays.count, scheduleSummary)
+                } else {
+                    LText("**{0}** days a week: {1}", draft.trainingWeekdays.count, scheduleSummary)
+                }
+            }
+            .font(.system(size: 14))
+            .foregroundStyle(.secondary)
+
+            sectionLabel(L("Time you have per session"))
+            Picker(L("Session length"), selection: $draft.sessionMinutes) {
+                ForEach([20, 30, 45, 60, 90], id: \.self) { minutes in
+                    Text(L("{0} min", minutes)).tag(minutes)
+                }
+            }
+            .pickerStyle(.segmented)
+            Text(L("This is a ceiling. If your level needs less volume to make progress, sessions will be shorter and we'll say so."))
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    // 5 ------------------------------------------------------------------
+    private var equipmentStep: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            header(L("Your equipment"), L("We only pick exercises you can actually do."))
             ForEach(Equipment.allCases) { equipment in
                 OptionCard(
                     symbol: equipment.symbol,
@@ -143,35 +288,180 @@ struct OnboardingView: View {
                     selected: draft.equipment == equipment
                 ) { draft.equipment = equipment }
             }
+
+            if draft.equipment == .dumbbells {
+                VStack(alignment: .leading, spacing: 10) {
+                    Toggle(L("Adjustable or plenty of weights"), isOn: Binding(
+                        get: { draft.maxDumbbellKg == 0 },
+                        set: { draft.maxDumbbellKg = $0 ? 0 : 20 }
+                    ))
+                    .tint(Theme.pink)
+                    if draft.maxDumbbellKg > 0 {
+                        Stepper(value: dumbbellBinding, in: dumbbellRange, step: 1) {
+                            LText("Heaviest dumbbell **{0} {1}**", Int(dumbbellBinding.wrappedValue), draft.units.weightLabel)
+                        }
+                        Text(L("When you outgrow it, we add reps and harder variations instead of asking for more weight."))
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(14)
+                .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
+            }
         }
     }
 
+    // 6 ------------------------------------------------------------------
     private var bodyStep: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            header("About you", "Used for calorie estimates and to pick starting weights. You can change it any time.")
+        VStack(alignment: .leading, spacing: 14) {
+            header(L("About you"), L("Used to pick safe starting weights and estimate calories. You can change it any time."))
 
-            Picker("Units", selection: $draft.units) {
+            Picker(L("Sex"), selection: $draft.sex) {
+                ForEach(Sex.allCases) { Text($0.title).tag($0) }
+            }
+            .pickerStyle(.segmented)
+
+            Picker(L("Units"), selection: $draft.units) {
                 ForEach(UnitSystem.allCases) { units in
-                    Text(units == .metric ? "Metric" : "Imperial").tag(units)
+                    Text(units == .metric ? L("Metric") : L("Imperial")).tag(units)
                 }
             }
             .pickerStyle(.segmented)
 
-            Stepper(value: weightBinding, in: weightRange, step: 1) {
-                Text("Weight **\(Int(weightBinding.wrappedValue)) \(draft.units.weightLabel)**")
-            }
-            Stepper(value: heightBinding, in: heightRange, step: 1) {
-                Text("Height **\(Int(heightBinding.wrappedValue)) \(draft.units.heightLabel)**")
-            }
-            Stepper(value: $draft.age, in: 14...90) {
-                Text("Age **\(draft.age)**")
+            VStack(spacing: 14) {
+                Stepper(value: weightBinding, in: weightRange, step: 1) {
+                    LText("Weight **{0} {1}**", Int(weightBinding.wrappedValue), draft.units.weightLabel)
+                }
+                Stepper(value: heightBinding, in: heightRange, step: 1) {
+                    LText("Height **{0} {1}**", Int(heightBinding.wrappedValue), draft.units.heightLabel)
+                }
+                Stepper(value: $draft.age, in: 14...90) {
+                    LText("Age **{0}**", draft.age)
+                }
             }
 
-            Label("Nothing leaves your phone. There is no account and no tracking.", systemImage: "lock.fill")
-                .font(.system(size: 13))
+            sectionLabel(L("Anything we should protect?"))
+            Text(L("We'll never pick exercises that load these areas."))
+                .font(.system(size: 12))
                 .foregroundStyle(.secondary)
-                .padding(.top, 8)
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                ForEach(BodyArea.allCases) { area in
+                    let on = draft.limitations.contains(area)
+                    Button {
+                        if on { draft.limitations.removeAll { $0 == area } } else { draft.limitations.append(area) }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: on ? "checkmark.circle.fill" : "circle")
+                            Text(area.title).font(.system(size: 15, weight: .medium))
+                            Spacer()
+                        }
+                        .foregroundStyle(on ? Theme.pink : Color.primary)
+                        .padding(12)
+                        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            Toggle(L("Low impact only (no jumping)"), isOn: $draft.lowImpactOnly)
+                .tint(Theme.pink)
+                .font(.system(size: 15))
+
+            Label(L("Momentum is not medical advice. If something hurts, stop and see a professional."), systemImage: "cross.case")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+                .padding(.top, 4)
         }
+    }
+
+    // 7 ------------------------------------------------------------------
+    private var previewProfile: UserProfile {
+        var profile = draft
+        let placement = Assessment.place(draft)
+        profile.level = placement.level
+        profile.rungs = placement.rungs
+        profile.startDate = Date()
+        profile.blockStart = TrainingCalendar.weekStart(of: Date())
+        return profile
+    }
+
+    private var planStep: some View {
+        let profile = previewProfile
+        let placement = Assessment.place(draft)
+        let week = PlanGenerator.week(containing: Date(), profile: profile, history: [])
+        let planned = PlanGenerator.plannedSets(in: week)
+        let targets = VolumePlanner.weeklyTargets(for: profile)
+
+        return VStack(alignment: .leading, spacing: 16) {
+            header(draft.name.isEmpty ? L("Your plan") : L("{0}, here's your plan", draft.name), L("Built from your answers. It changes as you train."))
+
+            planCard(L("Where you start"), symbol: "figure.walk") {
+                ForEach(placement.notes, id: \.self) { note in
+                    Text(L("• {0}", note)).font(.system(size: 14))
+                }
+            }
+
+            planCard(L("Your week"), symbol: "calendar") {
+                ForEach(Array(week.enumerated()), id: \.offset) { pair in
+                    HStack {
+                        Text(Loc.date(pair.element.date, "EEEE"))
+                            .font(.system(size: 14, weight: .semibold))
+                        Spacer()
+                        Text(L("{0} · ~{1} min", pair.element.workout.title, pair.element.workout.minutes))
+                            .font(.system(size: 14))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            planCard(L("Weekly sets per muscle"), symbol: "chart.bar.fill") {
+                ForEach(VolumePlanner.muscles, id: \.self) { muscle in
+                    if let target = targets[muscle] {
+                        HStack {
+                            Text(muscle.title).font(.system(size: 14, weight: .medium))
+                            Spacer()
+                            Text(L("{0} planned · goal {1}-{2}", planned[muscle] ?? 0, target.low, target.high))
+                                .font(.system(size: 13))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+
+            planCard(L("How it adapts"), symbol: "wand.and.stars") {
+                Text(L("• Weights and reps move up when you hit the top of the range, and hold or drop when you don't."))
+                Text(L("• Bodyweight moves step up to harder versions as you master them."))
+                Text(L("• A lighter deload week comes every {0} weeks, or sooner if you're worn out.", Periodization.blockLength(for: profile.level)))
+                Text(L("• After time off, weights come back gently."))
+                Text(L("• Swap any exercise you can't do, and we'll suggest the right alternative."))
+            }
+
+            Toggle(isOn: healthBinding) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L("Connect Apple Health"))
+                        .font(.system(size: 16, weight: .semibold))
+                    Text(L("Save workouts and weight to Health and show your steps."))
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .tint(Theme.pink)
+            .disabled(!HealthService.isAvailable)
+            .padding(14)
+            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
+        }
+    }
+
+    private func planCard<Content: View>(_ title: String, symbol: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(title, systemImage: symbol)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Theme.pink)
+            content()
+                .font(.system(size: 14))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
     }
 
     // MARK: Footer
@@ -179,14 +469,16 @@ struct OnboardingView: View {
     private var footer: some View {
         HStack(spacing: 12) {
             if step > 0 {
-                Button("Back") { step -= 1 }
+                Button(L("Back")) { step -= 1 }
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 12)
             }
             Spacer()
-            Button(step == lastStep ? "Build my plan" : "Continue") {
+            Button(step == lastStep ? L("Start training") : L("Continue")) {
                 if step == lastStep {
+                    // The language picked on the first step lives on the store, not the draft.
+                    draft.language = store.profile.language
                     store.completeOnboarding(draft)
                 } else {
                     step += 1
@@ -198,15 +490,7 @@ struct OnboardingView: View {
         .padding(.vertical, 12)
     }
 
-    // MARK: Helpers
-
-    private func symbol(for level: FitnessLevel) -> String {
-        switch level {
-        case .beginner: return "figure.walk"
-        case .intermediate: return "figure.run"
-        case .advanced: return "bolt.fill"
-        }
-    }
+    // MARK: Bindings
 
     private var weightRange: ClosedRange<Double> {
         draft.units == .metric ? 30...250 : 66...550
@@ -214,6 +498,23 @@ struct OnboardingView: View {
 
     private var heightRange: ClosedRange<Double> {
         draft.units == .metric ? 120...230 : 48...90
+    }
+
+    private var dumbbellRange: ClosedRange<Double> {
+        draft.units == .metric ? 2...60 : 5...130
+    }
+
+    private var healthBinding: Binding<Bool> {
+        Binding(
+            get: { draft.healthSync },
+            set: { enabled in
+                if enabled {
+                    Task { @MainActor in draft.healthSync = await health.requestAccess() }
+                } else {
+                    draft.healthSync = false
+                }
+            }
+        )
     }
 
     private var weightBinding: Binding<Double> {
@@ -228,6 +529,45 @@ struct OnboardingView: View {
             get: { draft.units.displayHeight(draft.heightCm).rounded() },
             set: { draft.heightCm = draft.units.cm(fromDisplay: $0) }
         )
+    }
+
+    private var dumbbellBinding: Binding<Double> {
+        Binding(
+            get: { draft.units.displayWeight(draft.maxDumbbellKg).rounded() },
+            set: { draft.maxDumbbellKg = draft.units.kg(fromDisplay: $0) }
+        )
+    }
+}
+
+/// Compact single-choice row.
+struct ChoiceRow: View {
+    let title: String
+    let selected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Text(title)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(.primary)
+                Spacer()
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 20))
+                    .foregroundStyle(selected ? Theme.pink : Color.primary.opacity(0.2))
+            }
+            .padding(14)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(.secondarySystemGroupedBackground))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(selected ? Theme.pink : Color.clear, lineWidth: 2)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 

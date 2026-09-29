@@ -51,8 +51,8 @@ struct WorkoutCard: View {
                         .font(.system(size: 19, weight: .semibold))
                         .foregroundStyle(.white)
                     HStack(spacing: 10) {
-                        Text("\(workout.minutes) min")
-                        Text("\(workout.calories(weightKg: weightKg)) cal")
+                        Text(L("{0} min", workout.minutes))
+                        Text(L("{0} cal", workout.calories(weightKg: weightKg)))
                     }
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(Color.white.opacity(0.65))
@@ -140,4 +140,52 @@ struct ProgressBar: View {
 
 func formatClock(_ seconds: Int) -> String {
     String(format: "%d:%02d", seconds / 60, seconds % 60)
+}
+
+/// Mon-Sun row: filled = trained, ring = scheduled, faint ring = rest day.
+struct WeekStrip: View {
+    @EnvironmentObject private var store: AppStore
+
+    var body: some View {
+        let calendar = PlanGenerator.calendar
+        let today = calendar.startOfDay(for: Date())
+        let start = calendar.dateInterval(of: .weekOfYear, for: today)?.start ?? today
+        let days = (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: start) }
+
+        HStack(spacing: 0) {
+            ForEach(days, id: \.self) { day in
+                let done = !store.sessions(on: day).isEmpty
+                let scheduled = PlanGenerator.isTrainingDay(day, profile: store.profile)
+                let isToday = calendar.isDate(day, inSameDayAs: today)
+                VStack(spacing: 6) {
+                    Text(Loc.date(day, "EEEEE"))
+                        .font(.system(size: 12, weight: isToday ? .bold : .medium))
+                        .foregroundStyle(isToday ? Theme.pink : Color.secondary)
+                    ZStack {
+                        Circle().fill(done ? Theme.pink : Color.clear)
+                        Circle().stroke(scheduled || done ? Theme.pink : Color.primary.opacity(0.12), lineWidth: 2)
+                        if done {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .frame(width: 28, height: 28)
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.bottom, 16)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilitySummary(days: days))
+    }
+
+    private func accessibilitySummary(days: [Date]) -> String {
+        days.map { day in
+            let name = Loc.date(day, "EEE")
+            if !store.sessions(on: day).isEmpty { return L("{0} trained", name) }
+            return PlanGenerator.isTrainingDay(day, profile: store.profile) ? L("{0} scheduled", name) : L("{0} rest", name)
+        }.joined(separator: ", ")
+    }
 }

@@ -6,3 +6,8 @@ build/
 *.xcworkspace/xcuserdata/
 .DS_Store
 .swiftpm/
+tools/mockups/.cache/
+Momentum/Momentum.entitlements
+.build/
+__pycache__/
+*.pyc
