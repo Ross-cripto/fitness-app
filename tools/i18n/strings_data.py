@@ -43,3 +43,37 @@ PT = {
     "This backup was made by a newer version of Momentum. Update the app and try again.":
         "Este backup foi criado por uma versão mais recente do Momentum. Atualize o app e tente novamente.",
 }
+
+# History
+ES.update({
+    "{0} × {1}": "{0} × {1}",
+})
+PT.update({
+    "{0} × {1}": "{0} × {1}",
+})
+
+# History screen
+ES.update({
+    "All workouts": "Todos los entrenamientos",
+    "Calories": "Calorías",
+    "Sets": "Series",
+    "How it felt": "Cómo se sintió",
+    "Felt: {0}": "Sensación: {0}",
+    "Delete this workout?": "¿Eliminar este entrenamiento?",
+    "It is removed from your history and progress. This can't be undone.":
+        "Se quita de tu historial y de tu progreso. No se puede deshacer.",
+    "No workouts yet. Finish one and it will show up here.":
+        "Aún no hay entrenamientos. Termina uno y aparecerá aquí.",
+})
+PT.update({
+    "All workouts": "Todos os treinos",
+    "Calories": "Calorias",
+    "Sets": "Séries",
+    "How it felt": "Como foi",
+    "Felt: {0}": "Sensação: {0}",
+    "Delete this workout?": "Excluir este treino?",
+    "It is removed from your history and progress. This can't be undone.":
+        "Ele é removido do seu histórico e do seu progresso. Não é possível desfazer.",
+    "No workouts yet. Finish one and it will show up here.":
+        "Ainda não há treinos. Conclua um e ele aparecerá aqui.",
+})

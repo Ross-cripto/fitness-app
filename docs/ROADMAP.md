@@ -24,7 +24,7 @@ Status: ✅ done · 🚧 in progress · ⬜ not started · 💬 needs a decision
 
 | | Item | Why |
 |---|---|---|
-| 🚧 | History screen: every past workout, its sets, delete | Today only the selected day is visible |
+| ✅ | History screen: every past workout, its sets, delete | Today only the selected day is visible |
 | ⬜ | Per-exercise chart (estimated 1RM / reps over time) | The evidence that the plan works |
 | ⬜ | Weekly review card: what was planned vs done, what the engine will change next week | Makes the adaptation visible and trustworthy |
 

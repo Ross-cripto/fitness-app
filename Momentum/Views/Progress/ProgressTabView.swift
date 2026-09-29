@@ -360,14 +360,26 @@ struct ProgressTabView: View {
     private var daySessions: some View {
         let list = store.sessions(on: selected)
         return VStack(alignment: .leading, spacing: 10) {
-            Text(calendar.isDateInToday(selected) ? L("Today's sessions") : L("Sessions on {0}", Loc.date(selected, "MMMd")))
-                .font(.system(size: 17, weight: .semibold))
+            HStack {
+                Text(calendar.isDateInToday(selected) ? L("Today's sessions") : L("Sessions on {0}", Loc.date(selected, "MMMd")))
+                    .font(.system(size: 17, weight: .semibold))
+                Spacer()
+                NavigationLink {
+                    HistoryView()
+                } label: {
+                    Text(L("All workouts"))
+                        .font(.system(size: 14, weight: .semibold))
+                }
+            }
             if list.isEmpty {
                 Text(L("No workouts logged on this day."))
                     .font(.system(size: 14))
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(list) { session in
+                    NavigationLink {
+                        SessionDetailView(session: session)
+                    } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(session.title).font(.system(size: 15, weight: .semibold))
@@ -380,6 +392,9 @@ struct ProgressTabView: View {
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(.secondary)
                     }
+                    .foregroundStyle(.primary)
+                    }
+                    .buttonStyle(.plain)
                     .padding(14)
                     .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
                     .contextMenu {
