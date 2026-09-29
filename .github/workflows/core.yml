@@ -1,0 +1,14 @@
+name: Core engine tests (Linux)
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    container: swift:5.10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test the UI-free core
+        run: swift test
