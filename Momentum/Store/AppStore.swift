@@ -39,7 +39,12 @@ final class AppStore: ObservableObject {
         var weights: [WeightEntry]
     }
 
-    @Published var profile: UserProfile { didSet { save() } }
+    @Published var profile: UserProfile {
+        didSet {
+            applyLanguage()
+            save()
+        }
+    }
     @Published private(set) var sessions: [WorkoutSession] = []
     @Published private(set) var weights: [WeightEntry] = []
 
@@ -63,6 +68,15 @@ final class AppStore: ObservableObject {
         } else {
             profile = UserProfile()
         }
+        applyLanguage()
+    }
+
+    /// The language in use: the person's choice, or the phone's.
+    var language: AppLanguage { profile.language ?? .detect() }
+
+    /// Points the runtime translator at the chosen language. Views re-render because `profile` is published.
+    private func applyLanguage() {
+        Loc.language = language
     }
 
     // MARK: Persistence
@@ -117,9 +131,11 @@ final class AppStore: ObservableObject {
     }
 
     func resetAll() {
+        let language = profile.language
         sessions = []
         weights = []
         profile = UserProfile()
+        profile.language = language
     }
 
     /// Clears the adaptive state (difficulty offset, deloads, rung history) and re-places the person from their

@@ -8,11 +8,11 @@ enum SwapReason: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .tooHard: return "Too hard for me"
-        case .tooEasy: return "Too easy"
-        case .pain: return "It hurts or feels wrong"
-        case .noEquipment: return "I don't have the equipment"
-        case .dislike: return "I just don't like it"
+        case .tooHard: return L("Too hard for me")
+        case .tooEasy: return L("Too easy")
+        case .pain: return L("It hurts or feels wrong")
+        case .noEquipment: return L("I don't have the equipment")
+        case .dislike: return L("I just don't like it")
         }
     }
 
@@ -33,9 +33,9 @@ enum Relation: String {
 
     var title: String {
         switch self {
-        case .easier: return "Easier"
-        case .similar: return "Similar"
-        case .harder: return "Harder"
+        case .easier: return L("Easier")
+        case .similar: return L("Similar")
+        case .harder: return L("Harder")
         }
     }
 }
@@ -48,9 +48,9 @@ enum SwapScope: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .today: return "Just this workout"
-        case .always: return "Use this from now on"
-        case .neverShowOriginal: return "Never show the original again"
+        case .today: return L("Just this workout")
+        case .always: return L("Use this from now on")
+        case .neverShowOriginal: return L("Never show the original again")
         }
     }
 }
@@ -182,21 +182,21 @@ enum Alternatives {
     ) -> String {
         switch reason {
         case .tooHard:
-            if candidate.isLoaded == false && current.isLoaded { return "Bodyweight version, no weight to manage." }
-            return relation == .easier ? "A gentler version of the same movement." : "Same movement, and you can start light."
+            if candidate.isLoaded == false && current.isLoaded { return L("Bodyweight version, no weight to manage.") }
+            return relation == .easier ? L("A gentler version of the same movement.") : L("Same movement, and you can start light.")
         case .tooEasy:
-            return relation == .harder ? "A harder variation of the same movement." : "Same movement, so you can add weight."
+            return relation == .harder ? L("A harder variation of the same movement.") : L("Same movement, so you can add weight.")
         case .pain:
-            let areas = avoided.map { $0.title.lowercased() }.sorted().joined(separator: " and ")
-            return areas.isEmpty ? "Puts less stress on the joints involved." : "Doesn't load your \(areas)."
+            let areas = Loc.list(avoided.map { $0.title.lowercased() }.sorted())
+            return areas.isEmpty ? L("Puts less stress on the joints involved.") : L("Doesn't load your {0}.", areas)
         case .noEquipment:
             return candidate.equipment == .bodyweight
-                ? "No equipment needed."
-                : "Needs only \(candidate.equipment.title.lowercased())."
+                ? L("No equipment needed.")
+                : L("Needs only {0}.", candidate.equipment.title.lowercased())
         case .dislike:
             return candidate.pattern == current.pattern
-                ? "Trains the same movement."
-                : "Works the same muscles (\(candidate.muscle.title.lowercased()))."
+                ? L("Trains the same movement.")
+                : L("Works the same muscles ({0}).", candidate.muscle.title.lowercased())
         }
     }
 }

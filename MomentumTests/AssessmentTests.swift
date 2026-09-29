@@ -1,7 +1,7 @@
 import XCTest
 @testable import Momentum
 
-final class AssessmentTests: XCTestCase {
+final class AssessmentTests: EnglishTestCase {
     func testLevelFromHistoryAndFrequency() {
         XCTAssertEqual(Assessment.level(history: .never, frequency: .none, check: FitnessCheck()), .beginner)
         XCTAssertEqual(Assessment.level(history: .under6Months, frequency: .oneToTwo, check: FitnessCheck()), .beginner)
@@ -66,7 +66,7 @@ final class AssessmentTests: XCTestCase {
     }
 }
 
-final class ExerciseMetaTests: XCTestCase {
+final class ExerciseMetaTests: EnglishTestCase {
     func testEveryExerciseHasMetadata() {
         for e in ExerciseLibrary.all {
             XCTAssertNotNil(ExerciseMetaTable.table[e.id], "missing meta: \(e.id)")

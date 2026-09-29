@@ -47,7 +47,7 @@ enum AdaptiveEngine {
             if level != .advanced && canChangeLevel {
                 newLevel = FitnessLevel.from(rank: level.rank + 1)
                 newIntensity = 0
-                message = "You're outgrowing this plan. Moved up to \(newLevel.title)."
+                message = L("You're outgrowing this plan. Moved up to {0}.", newLevel.title)
             } else {
                 newIntensity = maxIntensity
             }
@@ -55,14 +55,14 @@ enum AdaptiveEngine {
             if level != .beginner && canChangeLevel {
                 newLevel = FitnessLevel.from(rank: level.rank - 1)
                 newIntensity = 0
-                message = "Let's rebuild. Moved down to \(newLevel.title) so training stays sustainable."
+                message = L("Let's rebuild. Moved down to {0} so training stays sustainable.", newLevel.title)
             } else {
                 newIntensity = -maxIntensity
             }
         } else if delta > 0 {
-            message = "Your last two sessions felt easy, so upcoming workouts get a bit tougher."
+            message = L("Your last two sessions felt easy, so upcoming workouts get a bit tougher.")
         } else if delta < 0 {
-            message = "Your recent sessions were hard, so upcoming workouts get a notch easier."
+            message = L("Your recent sessions were hard, so upcoming workouts get a notch easier.")
         }
 
         return Outcome(level: newLevel, intensity: newIntensity, message: message)
@@ -115,7 +115,7 @@ enum AdaptiveEngine {
                let next = nextRungExercise(ladder: ladder, rung: current + 1, profile: p) {
                 p.rungs[ladder.rawValue] = current + 1
                 p.rungChangedAt[ladder.rawValue] = session.date
-                messages.append("\(ladder.title): moving up to \(next.name).")
+                messages.append(L("{0}: moving up to {1}.", ladder.title, next.name))
             } else if rung == current, current > 0,
                       Progression.failed(log, exercise: exercise, range: range, tolerance: 3),
                       case let recent = Progression.recentLogs(for: exercise.id, in: earlier, limit: 2),
@@ -123,7 +123,7 @@ enum AdaptiveEngine {
                       recent.allSatisfy({ Progression.failed($0, exercise: exercise, range: range, tolerance: 3) }) {
                 p.rungs[ladder.rawValue] = current - 1
                 p.rungChangedAt[ladder.rawValue] = session.date
-                messages.append("\(ladder.title): stepping back to an easier variation so you can build up again.")
+                messages.append(L("{0}: stepping back to an easier variation so you can build up again.", ladder.title))
             }
         }
 
@@ -131,7 +131,7 @@ enum AdaptiveEngine {
         if let previous = previousSessionDate, TrainingCalendar.daysBetween(previous, session.date) >= 14 {
             p.blockStart = TrainingCalendar.weekStart(of: session.date)
             p.deloadWeekStart = nil
-            messages.append("Welcome back. A fresh training block starts this week.")
+            messages.append(L("Welcome back. A fresh training block starts this week."))
         }
 
         // 4. Accumulated fatigue turns the rest of the week into a deload.
@@ -140,7 +140,7 @@ enum AdaptiveEngine {
             let weekStart = TrainingCalendar.weekStart(of: session.date)
             p.deloadWeekStart = weekStart
             p.blockStart = TrainingCalendar.calendar.date(byAdding: .day, value: 7, to: weekStart) ?? weekStart
-            messages.append("You've been under a lot of strain. The rest of this week is a lighter deload, then a fresh block.")
+            messages.append(L("You've been under a lot of strain. The rest of this week is a lighter deload, then a fresh block."))
         }
 
         return SessionOutcome(profile: p, messages: messages)

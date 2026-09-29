@@ -1,7 +1,7 @@
 import XCTest
 @testable import Momentum
 
-final class MotionTests: XCTestCase {
+final class MotionTests: EnglishTestCase {
     func testEveryExerciseHasAWellFormedMotion() {
         XCTAssertFalse(MotionLibrary.all.isEmpty, "MotionData.json failed to decode")
         for exercise in ExerciseLibrary.all {
@@ -60,7 +60,7 @@ final class MotionTests: XCTestCase {
     }
 }
 
-final class LinksAndPersistenceTests: XCTestCase {
+final class LinksAndPersistenceTests: EnglishTestCase {
     func testEveryExerciseHasAYouTubeLink() {
         for exercise in ExerciseLibrary.all {
             let url = exercise.videoURL
@@ -123,7 +123,7 @@ final class LinksAndPersistenceTests: XCTestCase {
     }
 }
 
-final class UnitTests: XCTestCase {
+final class UnitTests: EnglishTestCase {
     func testWeightConversionRoundTrips() {
         let kg = 82.5
         let pounds = UnitSystem.imperial.displayWeight(kg)

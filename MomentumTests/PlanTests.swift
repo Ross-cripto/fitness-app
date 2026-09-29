@@ -1,7 +1,7 @@
 import XCTest
 @testable import Momentum
 
-final class PlanGeneratorTests: XCTestCase {
+final class PlanGeneratorTests: EnglishTestCase {
     private func week(_ p: UserProfile, _ n: Int = 0, history: [WorkoutSession] = []) -> [(date: Date, workout: Workout)] {
         PlanGenerator.week(containing: T.week(n), profile: p, history: history, now: T.week(n))
     }
@@ -302,7 +302,7 @@ final class PlanGeneratorTests: XCTestCase {
     }
 }
 
-final class AlternativesTests: XCTestCase {
+final class AlternativesTests: EnglishTestCase {
     private func setup(_ p: UserProfile, id: String) -> (PlannedExercise, Workout) {
         let planned = PlannedExercise(exerciseID: id, sets: 3, target: 8, repMin: 6, repMax: 10, restSeconds: 90, weightKg: 20)
         return (planned, Workout(id: "x", title: "t", subtitle: "s", theme: .chest, exercises: [planned]))

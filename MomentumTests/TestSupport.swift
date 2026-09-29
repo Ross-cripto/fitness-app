@@ -82,3 +82,11 @@ enum T {
         Progression.repRange(for: ExerciseLibrary.exercise(id), goal: p.goal, level: p.level)
     }
 }
+
+/// Engine tests assert on English text, so they run with the app language forced to English.
+class EnglishTestCase: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        Loc.language = .en
+    }
+}

@@ -6,27 +6,27 @@ enum SessionFocus: String, CaseIterable {
 
     var title: String {
         switch self {
-        case .fullBodyA, .fullBodyB, .fullBodyC: return "Full Body"
-        case .upperA, .upperB: return "Upper Body"
-        case .lowerA, .lowerB: return "Lower Body"
-        case .push: return "Push Day"
-        case .pull: return "Pull Day"
-        case .legs: return "Leg Day"
+        case .fullBodyA, .fullBodyB, .fullBodyC: return L("Full Body")
+        case .upperA, .upperB: return L("Upper Body")
+        case .lowerA, .lowerB: return L("Lower Body")
+        case .push: return L("Push Day")
+        case .pull: return L("Pull Day")
+        case .legs: return L("Leg Day")
         }
     }
 
     var subtitle: String {
         switch self {
-        case .fullBodyA: return "Squat and press emphasis"
-        case .fullBodyB: return "Hinge and pull emphasis"
-        case .fullBodyC: return "Balanced total-body work"
-        case .upperA: return "Chest, back, shoulders, arms"
-        case .upperB: return "Back-focused upper body"
-        case .lowerA: return "Quads, glutes, core"
-        case .lowerB: return "Hamstrings, glutes, calves"
-        case .push: return "Chest, shoulders, triceps"
-        case .pull: return "Back and biceps"
-        case .legs: return "Legs and core"
+        case .fullBodyA: return L("Squat and press emphasis")
+        case .fullBodyB: return L("Hinge and pull emphasis")
+        case .fullBodyC: return L("Balanced total-body work")
+        case .upperA: return L("Chest, back, shoulders, arms")
+        case .upperB: return L("Back-focused upper body")
+        case .lowerA: return L("Quads, glutes, core")
+        case .lowerB: return L("Hamstrings, glutes, calves")
+        case .push: return L("Chest, shoulders, triceps")
+        case .pull: return L("Back and biceps")
+        case .legs: return L("Legs and core")
         }
     }
 
@@ -244,11 +244,11 @@ enum PlanGenerator {
 
         var note: String?
         if ctx.phase?.isDeload == true {
-            note = "Deload week: fewer sets and lighter weights so your body can recover and come back stronger."
+            note = L("Deload week: fewer sets and lighter weights so your body can recover and come back stronger.")
         } else if ctx.comebackFactor < 1 {
-            note = "Welcome back after \(ctx.daysOff) days: lighter weights to ease in."
+            note = L("Welcome back after {0} days: lighter weights to ease in.", ctx.daysOff)
         } else if readiness == .low {
-            note = "Easy day: one set fewer and no weight jumps."
+            note = L("Easy day: one set fewer and no weight jumps.")
         }
 
         let stamp = Int(calendar.startOfDay(for: date).timeIntervalSince1970 / 86_400)
@@ -413,20 +413,20 @@ enum PlanGenerator {
                 weight = min(weight, Progression.roundLoad(weight * exerciseComeback, for: exercise, down: true))
                 decision.target = decision.repMin
                 let pct = Comeback.percentLighter(daysSinceLast: daysSince)
-                reason = "Comeback: about \(pct)% lighter after \(daysSince) days off."
+                reason = L("Comeback: about {0}% lighter after {1} days off.", pct, daysSince)
             }
             if ctx.phase?.isDeload == true {
                 weight = Progression.roundLoad(weight * Progression.deloadLoadFactor, for: exercise, down: true)
-                reason = "Deload week: a lighter weight to recover."
+                reason = L("Deload week: a lighter weight to recover.")
             }
             if let cap = Progression.dumbbellCap(for: exercise, profile: profile), weight > cap { weight = cap }
             decision.weightKg = weight
         } else if hasHistory {
             if ctx.phase?.isDeload == true {
-                reason = "Deload week: fewer sets to recover."
+                reason = L("Deload week: fewer sets to recover.")
             } else if exerciseComeback < 1 {
                 decision.target = decision.repMin
-                reason = "Comeback: ease back in with a comfortable number."
+                reason = L("Comeback: ease back in with a comfortable number.")
             }
         }
 
@@ -683,13 +683,13 @@ enum PlanGenerator {
         let spec: (id: String, title: String, subtitle: String, theme: MuscleGroup, patterns: [Pattern], budget: Int, sets: Int, rest: Int?)
         switch kind {
         case .short:
-            spec = ("quick-short", "Short Workout", "10-minute no-equipment blast", .cardio,
+            spec = ("quick-short", L("Short Workout"), L("10-minute no-equipment blast"), .cardio,
                     [.squat, .cardio, .horizontalPush, .coreStability, .cardio], 10, 2, 20)
         case .noEquipment:
-            spec = ("quick-bodyweight", "Wall Workouts", "Full body, zero equipment", .fullBody,
+            spec = ("quick-bodyweight", L("Wall Workouts"), L("Full body, zero equipment"), .fullBody,
                     [.squat, .horizontalPush, .horizontalPull, .hinge, .coreStability, .lunge, .verticalPush, .coreFlexion], profile.sessionMinutes, 3, nil)
         case .mobility:
-            spec = ("quick-mobility", "Mobility & Stretch", "Loosen up and recover", .mobility,
+            spec = ("quick-mobility", L("Mobility & Stretch"), L("Loosen up and recover"), .mobility,
                     [.mobility, .mobility, .mobility, .mobility, .mobility, .mobility], 10, 2, 10)
         }
 

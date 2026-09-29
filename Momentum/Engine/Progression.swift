@@ -236,7 +236,7 @@ enum Progression {
             if holdLoad, let planned = decision.weightKg, planned > load {
                 decision.weightKg = load
                 decision.target = max(range.min, min(range.max, last.sets.map { $0.reps }.min() ?? range.min))
-                decision.reason = "You're not feeling great today: same weight, no jump."
+                decision.reason = L("You're not feeling great today: same weight, no jump.")
             }
             return decision
         }
@@ -250,7 +250,7 @@ enum Progression {
                 repMin: range.min,
                 repMax: range.max,
                 weightKg: initialLoad(for: exercise, profile: profile),
-                reason: "First time: a light starting weight. Change it if it feels off."
+                reason: L("First time: a light starting weight. Change it if it feels off.")
             )
         }
         return Decision(
@@ -258,7 +258,7 @@ enum Progression {
             repMin: range.min,
             repMax: range.max,
             weightKg: nil,
-            reason: "First time: start at a comfortable number and add a little each session."
+            reason: L("First time: start at a comfortable number and add a little each session.")
         )
     }
 
@@ -290,7 +290,7 @@ enum Progression {
         if enough && (hitTop || easyAlmost) {
             if effort == .hard && hitTop {
                 return decision(range.max, load,
-                                "You reached \(range.max) reps but it felt hard: repeat this weight to lock it in.")
+                                L("You reached {0} reps but it felt hard: repeat this weight to lock it in.", range.max))
             }
             let beatBy3 = reps.allSatisfy { $0 >= range.max + 3 } && effort != .hard
             var next = load + stepKg * (beatBy3 ? 2 : 1)
@@ -299,25 +299,28 @@ enum Progression {
                     let newMax = min(20, max(range.max, minReps + 2))
                     let target = min(newMax, minReps + 1)
                     return decision(target, load,
-                                    "This is your heaviest dumbbell, so keep adding reps (up to \(newMax)).",
+                                    L("This is your heaviest dumbbell, so keep adding reps (up to {0}).", newMax),
                                     repMax: newMax)
                 }
                 next = cap
             }
             next = roundLoad(next, for: exercise)
             if let cap = cap { next = min(next, cap) }
-            let why = hitTop ? "you hit \(range.max) reps on every set" : "you reached the top of the range and it felt easy"
-            return decision(range.min, next, "Up \(units.formatWeight(next - load)): \(why).")
+            let amount = units.formatWeight(next - load)
+            let sentence = hitTop
+                ? L("Up {0}: you hit {1} reps on every set.", amount, range.max)
+                : L("Up {0}: you reached the top of the range and it felt easy.", amount)
+            return decision(range.min, next, sentence)
         }
 
         if !enough {
-            return decision(range.min, load, "You skipped some sets last time: same weight, get all your sets in.")
+            return decision(range.min, load, L("You skipped some sets last time: same weight, get all your sets in."))
         }
 
         let below = reps.filter { $0 < range.min }.count
         if below == 0 {
             let target = min(range.max, minReps + 1)
-            return decision(target, load, "Same weight: aim for \(target) reps on every set.")
+            return decision(target, load, L("Same weight: aim for {0} reps on every set.", target))
         }
         if below * 2 >= n {
             let severe = minReps <= range.min - 4
@@ -330,13 +333,13 @@ enum Progression {
             if severe || previousFailed {
                 let lighter = roundLoad(load * 0.9, for: exercise, down: true)
                 let why = (severe && !previousFailed)
-                    ? "That was much heavier than planned: dropping about 10%."
-                    : "Two tough sessions in a row: dropping about 10% to rebuild."
+                    ? L("That was much heavier than planned: dropping about 10%.")
+                    : L("Two tough sessions in a row: dropping about 10% to rebuild.")
                 return decision(range.min, min(lighter, load), why)
             }
-            return decision(range.min, load, "You missed the minimum reps: repeat this weight and beat it.")
+            return decision(range.min, load, L("You missed the minimum reps: repeat this weight and beat it."))
         }
-        return decision(range.min, load, "One set fell short: repeat the weight and get every set.")
+        return decision(range.min, load, L("One set fell short: repeat the weight and get every set."))
     }
 
     private static func decideBodyweight(
@@ -347,7 +350,6 @@ enum Progression {
         holdLoad: Bool
     ) -> Decision {
         let timed = exercise.kind == .timed
-        let unit = timed ? "seconds" : "reps"
         let v = values(last, timed: timed)
         let minV = v.min() ?? 0
         let effort = last.effort ?? .good
@@ -366,20 +368,23 @@ enum Progression {
             // no harder variation is available, so extend the range instead.
             let ceiling = timed ? 90 : 25
             if hiEff >= ceiling {
-                return decision(hiEff, "You've maxed this out: add a set, or switch to a harder variation.", addSet: true)
+                return decision(hiEff, L("You've maxed this out: add a set, or switch to a harder variation."), addSet: true)
             }
             let newMax = min(ceiling, hiEff + (timed ? 10 : 3))
             let target = min(newMax, hiEff + (timed ? 5 : 1))
-            return decision(target, "You reached the top and there's no harder variation available: adding \(unit).", repMax: newMax)
+            let extended = timed
+                ? L("You reached the top and there's no harder variation available: adding seconds.")
+                : L("You reached the top and there's no harder variation available: adding reps.")
+            return decision(target, extended, repMax: newMax)
         }
         if !enough {
-            return decision(range.min, "You skipped some sets last time: get all your sets in.")
+            return decision(range.min, L("You skipped some sets last time: get all your sets in."))
         }
         let below = v.filter { $0 < range.min }.count
         if below == 0 {
             let target = min(hiEff, minV + (timed ? 5 : 1))
-            return decision(target, "Aim for \(target) \(unit) on every set.")
+            return decision(target, timed ? L("Aim for {0} seconds on every set.", target) : L("Aim for {0} reps on every set.", target))
         }
-        return decision(range.min, "Below the minimum last time: repeat and build back up.")
+        return decision(range.min, L("Below the minimum last time: repeat and build back up."))
     }
 }

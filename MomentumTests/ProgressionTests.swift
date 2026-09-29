@@ -1,7 +1,7 @@
 import XCTest
 @testable import Momentum
 
-final class ProgressionTests: XCTestCase {
+final class ProgressionTests: EnglishTestCase {
     private let bench = "db_bench"          // dumbbell compound (per-hand weights)
     private func profile(_ goal: Goal = .buildMuscle, maxDumbbell: Double = 0) -> UserProfile {
         T.profile(level: .intermediate, goal: goal, equipment: .dumbbells, maxDumbbell: maxDumbbell)

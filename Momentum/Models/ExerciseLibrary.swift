@@ -31,7 +31,7 @@ enum ExerciseLibrary {
     ) -> Exercise {
         Exercise(
             id: id,
-            name: name,
+            englishName: name,
             muscle: muscle,
             equipment: equipment,
             level: level,
@@ -39,7 +39,7 @@ enum ExerciseLibrary {
             met: met,
             loadRatio: load,
             symbol: symbol ?? muscle.symbol,
-            steps: steps
+            englishSteps: steps
         )
     }
 

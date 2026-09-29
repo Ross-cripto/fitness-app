@@ -1,7 +1,7 @@
 import XCTest
 @testable import Momentum
 
-final class PeriodizationTests: XCTestCase {
+final class PeriodizationTests: EnglishTestCase {
     func testBlockLengthsByLevel() {
         XCTAssertEqual(Periodization.blockLength(for: .beginner), 6)
         XCTAssertEqual(Periodization.blockLength(for: .intermediate), 5)
@@ -52,7 +52,7 @@ final class PeriodizationTests: XCTestCase {
     }
 }
 
-final class RecoveryTests: XCTestCase {
+final class RecoveryTests: EnglishTestCase {
     private func failing(_ id: String = "db_bench") -> ExerciseLog {
         T.log(id, sets: [(3, 20), (3, 20), (2, 20)], min: 8, max: 12)
     }
@@ -102,7 +102,7 @@ final class RecoveryTests: XCTestCase {
     }
 }
 
-final class AdaptiveEngineTests: XCTestCase {
+final class AdaptiveEngineTests: EnglishTestCase {
     // MARK: Feedback hysteresis
 
     func testOneEasySessionDoesNotMoveTheDifficulty() {
@@ -244,7 +244,7 @@ final class AdaptiveEngineTests: XCTestCase {
     }
 }
 
-final class VolumeTests: XCTestCase {
+final class VolumeTests: EnglishTestCase {
     func testTargetsGrowWithLevelAndScaleWithGoal() {
         for muscle in VolumePlanner.muscles {
             let b = VolumePlanner.target(for: muscle, level: .beginner, goal: .buildMuscle)

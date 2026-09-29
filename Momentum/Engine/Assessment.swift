@@ -67,15 +67,15 @@ enum Assessment {
         for ladder in Ladder.allCases {
             rungs[ladder.rawValue] = defaultRung(ladder, level: level)
         }
-        var notes = ["Starting level: \(level.title)."]
+        var notes = [L("Starting level: {0}.", level.title)]
 
         if let p = check.pushups {
             let push = p == 0 ? 0 : (p <= 4 ? 1 : (p < 25 ? 2 : 3))
             rungs[Ladder.push.rawValue] = push
             rungs[Ladder.verticalPush.rawValue] = max(0, push - 1)
             rungs[Ladder.triceps.rawValue] = max(0, push - 1)
-            let names = ["wall push-ups", "knee push-ups", "push-ups", "decline push-ups"]
-            notes.append("Pushing starts with \(names[push]).")
+            let names = [L("wall push-ups"), L("knee push-ups"), L("push-ups"), L("decline push-ups")]
+            notes.append(L("Pushing starts with {0}.", names[push]))
         }
         if let s = check.squats {
             rungs[Ladder.squat.rawValue] = s >= 40 ? 1 : 0
@@ -83,13 +83,13 @@ enum Assessment {
         }
         if let pu = check.pullups {
             rungs[Ladder.pull.rawValue] = pu >= 1 ? 2 : min(defaultRung(.pull, level: level), 1)
-            notes.append(pu >= 1 ? "You can pull yourself up, so pulling starts with pull-ups where a bar is available." : "Pulling starts with rows and back work.")
+            notes.append(pu >= 1 ? L("You can pull yourself up, so pulling starts with pull-ups where a bar is available.") : L("Pulling starts with rows and back work."))
         }
         if let plank = check.plankSeconds {
             let core = plank < 20 ? 0 : (plank < 45 ? 1 : (plank < 90 ? 2 : 3))
             rungs[Ladder.coreStability.rawValue] = core
-            let names = ["dead bugs", "planks", "side planks", "hollow holds"]
-            notes.append("Core work starts with \(names[core]).")
+            let names = [L("dead bugs"), L("planks"), L("side planks"), L("hollow holds")]
+            notes.append(L("Core work starts with {0}.", names[core]))
         }
         return Placement(level: level, rungs: rungs, notes: notes)
     }

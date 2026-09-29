@@ -65,15 +65,15 @@ enum Ladder: String, Codable, CaseIterable {
 
     var title: String {
         switch self {
-        case .push: return "Push"
-        case .verticalPush: return "Shoulder press"
-        case .pull: return "Pull"
-        case .squat: return "Squat"
-        case .lunge: return "Lunge"
-        case .hinge: return "Hip hinge"
-        case .triceps: return "Triceps"
-        case .coreStability: return "Core stability"
-        case .coreFlexion: return "Core strength"
+        case .push: return L("Push")
+        case .verticalPush: return L("Shoulder press")
+        case .pull: return L("Pull")
+        case .squat: return L("Squat")
+        case .lunge: return L("Lunge")
+        case .hinge: return L("Hip hinge")
+        case .triceps: return L("Triceps")
+        case .coreStability: return L("Core stability")
+        case .coreFlexion: return L("Core strength")
         }
     }
 }

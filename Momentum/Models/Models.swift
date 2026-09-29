@@ -6,7 +6,13 @@ enum FitnessLevel: String, Codable, CaseIterable, Identifiable {
     case beginner, intermediate, advanced
 
     var id: String { rawValue }
-    var title: String { rawValue.capitalized }
+    var title: String {
+        switch self {
+        case .beginner: return L("Beginner")
+        case .intermediate: return L("Intermediate")
+        case .advanced: return L("Advanced")
+        }
+    }
 
     var rank: Int {
         switch self {
@@ -22,9 +28,9 @@ enum FitnessLevel: String, Codable, CaseIterable, Identifiable {
 
     var summary: String {
         switch self {
-        case .beginner: return "New to training or coming back after a long break."
-        case .intermediate: return "Training regularly and comfortable with the basics."
-        case .advanced: return "Years of consistent training. Ready for volume and load."
+        case .beginner: return L("New to training or coming back after a long break.")
+        case .intermediate: return L("Training regularly and comfortable with the basics.")
+        case .advanced: return L("Years of consistent training. Ready for volume and load.")
         }
     }
 
@@ -45,19 +51,19 @@ enum Goal: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .buildMuscle: return "Build muscle"
-        case .getStronger: return "Get stronger"
-        case .loseFat: return "Lose fat"
-        case .stayFit: return "General fitness"
+        case .buildMuscle: return L("Build muscle")
+        case .getStronger: return L("Get stronger")
+        case .loseFat: return L("Lose fat")
+        case .stayFit: return L("General fitness")
         }
     }
 
     var summary: String {
         switch self {
-        case .buildMuscle: return "More muscle size. Moderate reps, plenty of weekly volume."
-        case .getStronger: return "Lift heavier over time. Fewer reps, longer rests."
-        case .loseFat: return "Higher reps, shorter rests and a cardio finisher."
-        case .stayFit: return "A balanced routine to feel strong and energetic."
+        case .buildMuscle: return L("More muscle size. Moderate reps, plenty of weekly volume.")
+        case .getStronger: return L("Lift heavier over time. Fewer reps, longer rests.")
+        case .loseFat: return L("Higher reps, shorter rests and a cardio finisher.")
+        case .stayFit: return L("A balanced routine to feel strong and energetic.")
         }
     }
 
@@ -96,17 +102,17 @@ enum Equipment: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .bodyweight: return "No equipment"
-        case .dumbbells: return "Dumbbells"
-        case .fullGym: return "Full gym"
+        case .bodyweight: return L("No equipment")
+        case .dumbbells: return L("Dumbbells")
+        case .fullGym: return L("Full gym")
         }
     }
 
     var summary: String {
         switch self {
-        case .bodyweight: return "Just you, a wall and a sturdy chair."
-        case .dumbbells: return "A pair (or set) of dumbbells at home."
-        case .fullGym: return "Barbells, machines, cables and a pull-up bar."
+        case .bodyweight: return L("Just you, a wall and a sturdy chair.")
+        case .dumbbells: return L("A pair (or set) of dumbbells at home.")
+        case .fullGym: return L("Barbells, machines, cables and a pull-up bar.")
         }
     }
 
@@ -126,9 +132,9 @@ enum Sex: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .female: return "Female"
-        case .male: return "Male"
-        case .unspecified: return "Prefer not to say"
+        case .female: return L("Female")
+        case .male: return L("Male")
+        case .unspecified: return L("Prefer not to say")
         }
     }
 }
@@ -141,10 +147,10 @@ enum BodyArea: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .knees: return "Knees"
-        case .lowerBack: return "Lower back"
-        case .shoulders: return "Shoulders"
-        case .wrists: return "Wrists"
+        case .knees: return L("Knees")
+        case .lowerBack: return L("Lower back")
+        case .shoulders: return L("Shoulders")
+        case .wrists: return L("Wrists")
         }
     }
 
@@ -165,10 +171,10 @@ enum TrainingHistory: Int, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .never: return "Never, or just starting"
-        case .under6Months: return "Less than 6 months"
-        case .sixTo24Months: return "6 months to 2 years"
-        case .over2Years: return "More than 2 years"
+        case .never: return L("Never, or just starting")
+        case .under6Months: return L("Less than 6 months")
+        case .sixTo24Months: return L("6 months to 2 years")
+        case .over2Years: return L("More than 2 years")
         }
     }
 }
@@ -181,10 +187,10 @@ enum RecentFrequency: Int, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .none: return "None lately"
-        case .oneToTwo: return "1-2 times a week"
-        case .threeToFour: return "3-4 times a week"
-        case .fivePlus: return "5+ times a week"
+        case .none: return L("None lately")
+        case .oneToTwo: return L("1-2 times a week")
+        case .threeToFour: return L("3-4 times a week")
+        case .fivePlus: return L("5+ times a week")
         }
     }
 }
@@ -208,7 +214,7 @@ enum UnitSystem: String, Codable, CaseIterable, Identifiable {
     case metric, imperial
 
     var id: String { rawValue }
-    var title: String { self == .metric ? "Metric (kg, cm)" : "Imperial (lb, in)" }
+    var title: String { self == .metric ? L("Metric (kg, cm)") : L("Imperial (lb, in)") }
     var weightLabel: String { self == .metric ? "kg" : "lb" }
     var heightLabel: String { self == .metric ? "cm" : "in" }
 
@@ -236,8 +242,7 @@ enum UnitSystem: String, Codable, CaseIterable, Identifiable {
 
     func formatWeight(_ kg: Double) -> String {
         let value = (displayWeight(kg) * 2).rounded() / 2
-        let text = value == value.rounded() ? String(Int(value)) : String(format: "%.1f", value)
-        return "\(text) \(weightLabel)"
+        return "\(Loc.number(value)) \(weightLabel)"
     }
 }
 
@@ -256,6 +261,8 @@ struct UserProfile: Codable, Equatable {
     var onboarded: Bool = false
     /// Whether the user connected Apple Health (write workouts and weight, read steps).
     var healthSync: Bool = false
+    /// The language chosen in the app. nil follows the phone's language.
+    var language: AppLanguage?
 
     // Placement inputs (kept so the plan can be explained and re-derived).
     var history: TrainingHistory = .never
@@ -308,6 +315,7 @@ struct UserProfile: Codable, Equatable {
         startDate = value(.startDate, d.startDate)
         onboarded = value(.onboarded, d.onboarded)
         healthSync = value(.healthSync, d.healthSync)
+        language = try? c.decodeIfPresent(AppLanguage.self, forKey: .language)
         history = value(.history, d.history)
         frequency = value(.frequency, d.frequency)
         check = value(.check, d.check)
@@ -338,8 +346,15 @@ enum MuscleGroup: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .fullBody: return "Full body"
-        default: return rawValue.capitalized
+        case .chest: return L("Chest")
+        case .back: return L("Back")
+        case .legs: return L("Legs")
+        case .shoulders: return L("Shoulders")
+        case .arms: return L("Arms")
+        case .core: return L("Core")
+        case .cardio: return L("Cardio")
+        case .fullBody: return L("Full body")
+        case .mobility: return L("Mobility")
         }
     }
 
@@ -364,7 +379,8 @@ enum ExerciseKind: String, Codable, Hashable {
 
 struct Exercise: Identifiable, Hashable {
     let id: String
-    let name: String
+    /// English name (the source text; `name` is the localized one).
+    let englishName: String
     let muscle: MuscleGroup
     let equipment: Equipment
     let level: FitnessLevel
@@ -375,7 +391,10 @@ struct Exercise: Identifiable, Hashable {
     /// lifter (per hand for dumbbells). `nil` for bodyweight movements.
     let loadRatio: Double?
     let symbol: String
-    let steps: [String]
+    let englishSteps: [String]
+
+    var name: String { ExerciseText.name(id: id, english: englishName) }
+    var steps: [String] { ExerciseText.steps(id: id, english: englishSteps) }
 
     var isLoaded: Bool { loadRatio != nil }
 
@@ -386,7 +405,7 @@ struct Exercise: Identifiable, Hashable {
             return url
         }
         var components = URLComponents(string: "https://www.youtube.com/results")!
-        components.queryItems = [URLQueryItem(name: "search_query", value: "\(name) proper form tutorial")]
+        components.queryItems = [URLQueryItem(name: "search_query", value: L("{0} proper form tutorial", name))]
         return components.url ?? URL(string: "https://www.youtube.com")!
     }
 }
@@ -479,7 +498,7 @@ struct WeekPhase: Hashable {
     var repsInReserve: Int
 
     var label: String {
-        isDeload ? "Deload week" : "Week \(weekInBlock + 1) of \(blockLength - 1)"
+        isDeload ? L("Deload week") : L("Week {0} of {1}", weekInBlock + 1, blockLength - 1)
     }
 }
 
@@ -537,9 +556,9 @@ enum WorkoutFeedback: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .tooEasy: return "Too easy"
-        case .justRight: return "Just right"
-        case .tooHard: return "Too hard"
+        case .tooEasy: return L("Too easy")
+        case .justRight: return L("Just right")
+        case .tooHard: return L("Too hard")
         }
     }
 
@@ -560,9 +579,9 @@ enum Effort: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .easy: return "Easy"
-        case .good: return "Good"
-        case .hard: return "Hard"
+        case .easy: return L("Easy")
+        case .good: return L("Good")
+        case .hard: return L("Hard")
         }
     }
 }
@@ -575,9 +594,9 @@ enum Readiness: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .low: return "Rough"
-        case .normal: return "Okay"
-        case .great: return "Great"
+        case .low: return L("Rough")
+        case .normal: return L("Okay")
+        case .great: return L("Great")
         }
     }
 
