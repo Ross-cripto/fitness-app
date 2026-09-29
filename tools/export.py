@@ -17,6 +17,28 @@ if missing or extra:
 
 def r(v, n): return round(float(v), n)
 
+
+def blend(a, b, t):
+    out = list(a)
+    for k in range(len(a)):
+        if k < 2:
+            out[k] = a[k] + (b[k] - a[k]) * t
+        else:
+            dlt = (b[k] - a[k]) % 360
+            if dlt > 180: dlt -= 360
+            out[k] = a[k] + dlt * t
+    return out
+
+
+def animated_bounds(m, frames):
+    """Bounds that also cover the in-between poses the app interpolates, not just keyframes."""
+    dense = []
+    n = len(frames)
+    for i in range(n):
+        for step in range(9):
+            dense.append(blend(frames[i], frames[(i + 1) % n], step / 8))
+    return bbox(dict(m, frames=dense))
+
 out = {}
 for i in ids:
     m = allm[i]
@@ -26,7 +48,7 @@ for i in ids:
     else:
         frames = fr                    # 2 frames ping-pong naturally; 'cycle' loops as authored
     entry = {
-        'view': m['view'], 'dur': m['dur'], 'held': m.get('held'), 'bounds': bbox(m),
+        'view': m['view'], 'dur': m['dur'], 'held': m.get('held'), 'bounds': animated_bounds(m, frames),
         'props': [{'t': p['t'], 'p': [r(v, 3) for v in p['p']]} for p in m.get('props', [])],
         'frames': [[r(fr[0], 3), r(fr[1], 3)] + [r(v, 1) for v in fr[2:]] for fr in frames],
     }
