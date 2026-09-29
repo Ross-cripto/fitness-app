@@ -55,7 +55,7 @@ Status: ✅ done · 🚧 in progress · ⬜ not started · 💬 needs a decision
 
 | | Item | Why |
 |---|---|---|
-| ⬜ | Accessibility pass: Dynamic Type at the largest sizes, VoiceOver for the workout player, contrast | The app is for everyone |
+| 🚧 | Accessibility pass: Dynamic Type ✅ (up to AX2, screenshot-tested); VoiceOver walkthrough of the workout player ⬜; contrast audit ⬜ | The app is for everyone |
 | ⬜ | More languages (French, German, Italian, Chinese, Hindi...) | The translation tooling is ready; needs native speakers |
 | ⬜ | Native-speaker review of Spanish and Portuguese | Current text is AI-written |
 | ⬜ | Apple Watch companion (log sets from the wrist) | |

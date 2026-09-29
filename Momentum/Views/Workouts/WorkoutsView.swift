@@ -98,7 +98,7 @@ struct WorkoutsView: View {
         let minutes = logged.sessions > 0 ? logged.minutes : (planned?.minutes ?? 0)
         let sets = logged.sessions > 0 ? logged.sets : (planned?.totalSets ?? 0)
 
-        return HStack(spacing: 22) {
+        let pills = Group {
             StatPill(symbol: "flame.fill", value: "\(calories)", unit: L("cal"), tint: Theme.pink)
             StatPill(symbol: "timer", value: "\(minutes)", unit: L("min"), tint: Theme.green)
             if store.profile.healthSync && health.steps > 0 {
@@ -107,6 +107,12 @@ struct WorkoutsView: View {
                 StatPill(symbol: "checkmark.circle.fill", value: "\(sets)", unit: L("sets"), tint: Theme.amber)
             }
         }
+        // Side by side when they fit, stacked at large text sizes.
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 22) { pills }
+            VStack(alignment: .leading, spacing: 8) { pills }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
     }

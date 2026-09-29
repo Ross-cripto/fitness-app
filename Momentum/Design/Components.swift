@@ -19,6 +19,7 @@ struct StatPill: View {
                 .foregroundStyle(onDark ? Color.white : Color.primary)
             Text(unit)
                 .scaledFont(size: large ? 13 : 12, weight: .medium)
+                .lineLimit(1)
                 .foregroundStyle(onDark ? Color.white.opacity(0.6) : Color.secondary)
         }
         .accessibilityElement(children: .combine)
@@ -30,6 +31,8 @@ struct WorkoutCard: View {
     let label: String
     let workout: Workout
     let weightKg: Double
+    /// The card grows with the text size so large text is not cut off.
+    @ScaledMetric(relativeTo: .body) private var height: CGFloat = 136
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -65,7 +68,7 @@ struct WorkoutCard: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 16)
         }
-        .frame(height: 136)
+        .frame(height: height)
         .frame(maxWidth: .infinity)
         .clipped()
         .contentShape(Rectangle())
