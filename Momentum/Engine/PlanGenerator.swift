@@ -260,7 +260,8 @@ enum PlanGenerator {
             warmup: result.drills,
             exercises: result.planned,
             phase: ctx.phase,
-            note: note
+            note: note,
+            date: date
         )
     }
 

@@ -20,6 +20,7 @@ struct ProgressTabView: View {
                     dateStrip
                     calorieCard
                     durationCard
+                    volumeCard
                     weightCard
                     healthCard
                     recordsCard
@@ -204,6 +205,37 @@ struct ProgressTabView: View {
         .accessibilityElement(children: .combine)
     }
 
+    private var volumeCard: some View {
+        let rows = store.volumeThisWeek(containing: selected)
+        let phase = Periodization.phase(on: selected, profile: store.profile, history: store.sessions)
+        let purple = Color(hex: 0x7A5CFF)
+        return VStack(alignment: .leading, spacing: 12) {
+            IconBadge(symbol: "chart.bar.fill", tint: purple, size: 42)
+            Text("Weekly volume")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(purple)
+            Text("Hard sets per muscle this week against the range that builds progress at your level.")
+                .font(.system(size: 13))
+                .foregroundStyle(.secondary)
+            ForEach(rows) { row in
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(row.muscle.title).font(.system(size: 14, weight: .medium))
+                        Spacer()
+                        Text("\(row.done) / \(row.target.low)-\(row.target.high)")
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .foregroundStyle(row.done >= row.target.low ? Theme.green : Color.secondary)
+                    }
+                    ProgressBar(value: Double(row.done) / Double(max(1, row.target.high)), tint: row.done >= row.target.low ? Theme.green : purple)
+                }
+            }
+            Text("\(phase.label) · stop \(phase.repsInReserve) rep\(phase.repsInReserve == 1 ? "" : "s") short of failure")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+        }
+        .card()
+    }
+
     private var weightCard: some View {
         let entries = store.weights
         let latest = entries.last?.kg ?? store.profile.weightKg
@@ -306,8 +338,15 @@ struct ProgressTabView: View {
                         Text(record.exercise.name)
                             .font(.system(size: 15, weight: .medium))
                         Spacer()
-                        Text(units.formatWeight(record.kg))
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                        VStack(alignment: .trailing, spacing: 1) {
+                            Text(units.formatWeight(record.kg))
+                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                            if let estimate = store.bestEstimatedOneRepMax(for: record.exercise.id) {
+                                Text("est. 1RM \(units.formatWeight(estimate))")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
                 }
             }

@@ -494,6 +494,8 @@ struct Workout: Identifiable, Hashable {
     var phase: WeekPhase?
     /// Headline note shown above the exercises (deload, comeback, low readiness...).
     var note: String?
+    /// The day this workout is planned for (nil for quick workouts).
+    var date: Date?
 
     init(
         id: String,
@@ -503,7 +505,8 @@ struct Workout: Identifiable, Hashable {
         warmup: [PlannedExercise] = [],
         exercises: [PlannedExercise],
         phase: WeekPhase? = nil,
-        note: String? = nil
+        note: String? = nil,
+        date: Date? = nil
     ) {
         self.id = id
         self.title = title
@@ -513,6 +516,7 @@ struct Workout: Identifiable, Hashable {
         self.exercises = exercises
         self.phase = phase
         self.note = note
+        self.date = date
     }
 
     var totalSeconds: Int { (warmup + exercises).reduce(0) { $0 + $1.totalSeconds } }

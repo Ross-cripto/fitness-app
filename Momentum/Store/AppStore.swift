@@ -1,6 +1,13 @@
 import Foundation
 import SwiftUI
 
+struct VolumeRow: Identifiable {
+    let muscle: MuscleGroup
+    let done: Int
+    let target: VolumeTarget
+    var id: MuscleGroup { muscle }
+}
+
 struct DayMinutes: Identifiable {
     let date: Date
     let minutes: Int
@@ -85,11 +92,20 @@ final class AppStore: ObservableObject {
 
     // MARK: Profile & body weight
 
+    /// Finishes onboarding: places the person (level and starting rung on every ladder) and starts the first block.
     func completeOnboarding(_ newProfile: UserProfile) {
         var updated = newProfile
+        let placement = Assessment.place(updated)
+        updated.level = placement.level
+        updated.rungs = placement.rungs
         updated.onboarded = true
         updated.startDate = Date()
+        updated.blockStart = TrainingCalendar.weekStart(of: Date())
         updated.intensity = 0
+        updated.deloadWeekStart = nil
+        updated.levelChangedAt = nil
+        updated.rungChangedAt = [:]
+        if updated.trainingWeekdays.isEmpty { updated.trainingWeekdays = PlanGenerator.defaultWeekdays(forDays: 3) }
         weights = [WeightEntry(date: Date(), kg: updated.weightKg)]
         profile = updated // didSet saves
     }
@@ -106,14 +122,39 @@ final class AppStore: ObservableObject {
         profile = UserProfile()
     }
 
+    /// Clears the adaptive state (difficulty offset, deloads, rung history) and re-places the person from their
+    /// original onboarding answers.
     func resetAdaptation() {
-        profile.intensity = 0
+        var updated = profile
+        let placement = Assessment.place(updated)
+        updated.level = placement.level
+        updated.rungs = placement.rungs
+        updated.intensity = 0
+        updated.deloadWeekStart = nil
+        updated.levelChangedAt = nil
+        updated.rungChangedAt = [:]
+        updated.blockStart = TrainingCalendar.weekStart(of: Date())
+        profile = updated
     }
 
     // MARK: Plans
 
+    /// How the person says they feel today. Only affects today's workout and resets each day.
+    @Published private(set) var readiness: Readiness = .normal
+    private var readinessDay = Calendar.current.startOfDay(for: Date())
+
+    var todaysReadiness: Readiness {
+        Calendar.current.isDateInToday(readinessDay) ? readiness : .normal
+    }
+
+    func setReadiness(_ value: Readiness) {
+        readinessDay = Calendar.current.startOfDay(for: Date())
+        readiness = value
+    }
+
     func workout(on date: Date) -> Workout? {
-        PlanGenerator.workout(on: date, profile: profile, history: sessions)
+        let ready = Calendar.current.isDateInToday(date) ? todaysReadiness : .normal
+        return PlanGenerator.workout(on: date, profile: profile, history: sessions, readiness: ready)
     }
 
     func nextWorkout() -> (date: Date, workout: Workout)? {
@@ -126,28 +167,41 @@ final class AppStore: ObservableObject {
 
     // MARK: Sessions
 
-    /// Saves a finished session and adapts the plan from the feedback.
-    /// Returns a message describing the adaptation, if any.
+    /// Saves a finished session and adapts the plan (progression state, level, deloads).
+    /// Returns plain-language notes about what changed.
     @discardableResult
-    func record(_ session: WorkoutSession) -> String? {
+    func record(_ session: WorkoutSession) -> [String] {
+        let previous = sessions.map { $0.date }.max()
         sessions.append(session)
-        var message: String?
-        if let feedback = session.feedback {
-            let outcome = AdaptiveEngine.evaluate(
-                level: profile.level,
-                intensity: profile.intensity,
-                feedback: feedback,
-                completion: session.completion
-            )
-            var updated = profile
-            updated.level = outcome.level
-            updated.intensity = outcome.intensity
-            profile = updated
-            message = outcome.message
-        } else {
-            save()
+        let outcome = AdaptiveEngine.apply(
+            session: session, to: profile, history: sessions, previousSessionDate: previous
+        )
+        profile = outcome.profile   // didSet saves
+        return outcome.messages
+    }
+
+    // MARK: Swaps
+
+    /// Remembers how a swap should be handled in future plans.
+    func rememberSwap(original: Exercise, replacement: Exercise, scope: SwapScope, protecting areas: [BodyArea] = []) {
+        var updated = profile
+        updated.applySwap(original: original, replacement: replacement, scope: scope, protecting: areas)
+        profile = updated
+    }
+
+    /// Estimated one-rep max per lift from the best set ever logged.
+    func bestEstimatedOneRepMax(for exerciseID: String) -> Double? {
+        var best: Double?
+        for session in sessions {
+            for log in session.logs where log.exerciseID == exerciseID {
+                for set in log.sets {
+                    if let value = Progression.estimatedOneRepMax(weightKg: set.weightKg, reps: set.reps) {
+                        best = max(best ?? 0, value)
+                    }
+                }
+            }
         }
-        return message
+        return best
     }
 
     func delete(_ session: WorkoutSession) {
@@ -204,6 +258,16 @@ final class AppStore: ObservableObject {
             }
         }
         return (calories, minutes)
+    }
+
+    /// Completed sets per muscle this week vs the planned target range.
+    func volumeThisWeek(containing date: Date = Date()) -> [VolumeRow] {
+        let done = VolumePlanner.completedSets(in: sessions, weekContaining: date)
+        let targets = VolumePlanner.weeklyTargets(for: profile)
+        return VolumePlanner.muscles.compactMap { muscle in
+            guard let target = targets[muscle] else { return nil }
+            return VolumeRow(muscle: muscle, done: done[muscle] ?? 0, target: target)
+        }
     }
 
     /// Active minutes per day for the `days` days ending on `end`.
