@@ -47,6 +47,26 @@ enum Loc {
 
     static var locale: Locale { language.locale }
 
+    /// The user's calendar (first weekday, etc.) with month and weekday names in the app language.
+    static var calendar: Calendar {
+        var calendar = Calendar.current
+        calendar.locale = locale
+        return calendar
+    }
+
+    /// Formats a date with a skeleton such as "EEEE" (weekday), "MMMMd" (month and day), "jm" (time), in the app language.
+    static func date(_ date: Date, _ template: String) -> String {
+        dateFormatter(template).string(from: date)
+    }
+
+    /// A date formatter that speaks the app language. Prefer this over `DateFormatter()` and `.formatted()`.
+    static func dateFormatter(_ template: String) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.setLocalizedDateFormatFromTemplate(template)
+        return formatter
+    }
+
     private static let tables: [AppLanguage: [String: String]] = {
         guard let data = LocalizationData.json.data(using: .utf8),
               let decoded = try? JSONDecoder().decode([String: [String: String]].self, from: data) else { return [:] }
