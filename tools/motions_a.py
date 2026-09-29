@@ -54,6 +54,10 @@ motion('glute_bridge', [
     pose((-0.10, 0.10), 262, head=270, arm=A(90, 90), leg=LR(0.45, 0.05, F, 90)),
     pose((0.05, 0.45), 227, head=270, arm=A(90, 90), leg=LR(0.75, 0.05, F, 90)),
 ])
+motion('single_leg_bridge', [
+    pose((-0.10, 0.10), 262, head=270, arm=A(90, 90), leg=LR(0.45, 0.05, F, 90), fleg=LA(90, 90, 90)),
+    pose((0.05, 0.45), 227, head=270, arm=A(90, 90), leg=LR(0.75, 0.05, F, 90), fleg=LA(133, 133, 133)),
+])
 motion('db_rdl', [
     upright(0, STAND_HIP, 0, A(0, 0)),
     pose((-0.28, 0.84), 90, head=100, arm=A(0, 0), leg=LR(0.0, STAND_ANKLE, F, 90)),

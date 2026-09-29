@@ -63,6 +63,11 @@ enum ExerciseLibrary {
             "Squeeze your glutes and lift your hips until your body is a straight line.",
             "Pause at the top, then lower with control."
         ]),
+        ex("single_leg_bridge", "Single-Leg Glute Bridge", .legs, .bodyweight, .intermediate, met: 3.8, [
+            "Lie on your back, one foot flat, the other leg straight and lifted.",
+            "Drive through the planted heel and lift your hips until your body is in a line.",
+            "Keep your hips level, pause, then lower slowly. Switch legs after the set."
+        ]),
         ex("calf_raise", "Calf Raise", .legs, .bodyweight, .beginner, met: 3.5, [
             "Stand tall, feet hip-width apart. Hold a wall for balance if needed.",
             "Rise onto the balls of your feet as high as you can.",

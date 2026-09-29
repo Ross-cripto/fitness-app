@@ -28,9 +28,6 @@ enum FitnessLevel: String, Codable, CaseIterable, Identifiable {
         }
     }
 
-    /// Base number of sets for a working exercise.
-    var baseSets: Int { rank + 2 }
-
     /// Scales the starting-weight estimate for loaded exercises.
     var weightFactor: Double {
         switch self {
@@ -42,57 +39,44 @@ enum FitnessLevel: String, Codable, CaseIterable, Identifiable {
 }
 
 enum Goal: String, Codable, CaseIterable, Identifiable {
-    case buildMuscle, loseFat, stayFit
+    case buildMuscle, getStronger, loseFat, stayFit
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .buildMuscle: return "Build muscle"
+        case .getStronger: return "Get stronger"
         case .loseFat: return "Lose fat"
-        case .stayFit: return "Stay fit"
+        case .stayFit: return "General fitness"
         }
     }
 
     var summary: String {
         switch self {
-        case .buildMuscle: return "Heavier loads, fewer reps, longer rests."
-        case .loseFat: return "Higher reps, short rests, more cardio flow."
-        case .stayFit: return "A balanced mix to feel strong and energetic."
+        case .buildMuscle: return "More muscle size. Moderate reps, plenty of weekly volume."
+        case .getStronger: return "Lift heavier over time. Fewer reps, longer rests."
+        case .loseFat: return "Higher reps, shorter rests and a cardio finisher."
+        case .stayFit: return "A balanced routine to feel strong and energetic."
         }
     }
 
     var symbol: String {
         switch self {
         case .buildMuscle: return "dumbbell.fill"
+        case .getStronger: return "bolt.fill"
         case .loseFat: return "flame.fill"
         case .stayFit: return "heart.fill"
         }
     }
 
-    /// Target reps for weighted exercises, by level.
-    func loadedReps(for level: FitnessLevel) -> Int {
+    /// Multiplier on the weekly volume targets.
+    var volumeFactor: Double {
         switch self {
-        case .buildMuscle: return [12, 10, 8][level.rank]
-        case .loseFat: return [15, 15, 12][level.rank]
-        case .stayFit: return [12, 12, 10][level.rank]
-        }
-    }
-
-    /// Extra reps added to bodyweight movements.
-    var bodyweightBonus: Int {
-        switch self {
-        case .buildMuscle: return 0
-        case .loseFat: return 3
-        case .stayFit: return 1
-        }
-    }
-
-    var restSeconds: Int {
-        switch self {
-        case .buildMuscle: return 75
-        case .loseFat: return 40
-        case .stayFit: return 55
+        case .buildMuscle: return 1.0
+        case .getStronger: return 0.85
+        case .loseFat: return 0.85
+        case .stayFit: return 0.7
         }
     }
 }
@@ -120,9 +104,9 @@ enum Equipment: String, Codable, CaseIterable, Identifiable {
 
     var summary: String {
         switch self {
-        case .bodyweight: return "Just you, a wall and a chair."
-        case .dumbbells: return "A pair of dumbbells at home."
-        case .fullGym: return "Barbells, machines and cables."
+        case .bodyweight: return "Just you, a wall and a sturdy chair."
+        case .dumbbells: return "A pair (or set) of dumbbells at home."
+        case .fullGym: return "Barbells, machines, cables and a pull-up bar."
         }
     }
 
@@ -132,6 +116,91 @@ enum Equipment: String, Codable, CaseIterable, Identifiable {
         case .dumbbells: return "dumbbell"
         case .fullGym: return "figure.strengthtraining.traditional"
         }
+    }
+}
+
+enum Sex: String, Codable, CaseIterable, Identifiable {
+    case female, male, unspecified
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .female: return "Female"
+        case .male: return "Male"
+        case .unspecified: return "Prefer not to say"
+        }
+    }
+}
+
+/// Body areas the person wants to protect. Exercises that stress them are never chosen.
+enum BodyArea: String, Codable, CaseIterable, Identifiable {
+    case knees, lowerBack, shoulders, wrists
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .knees: return "Knees"
+        case .lowerBack: return "Lower back"
+        case .shoulders: return "Shoulders"
+        case .wrists: return "Wrists"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .knees: return "figure.walk"
+        case .lowerBack: return "figure.stand"
+        case .shoulders: return "figure.arms.open"
+        case .wrists: return "hand.raised.fill"
+        }
+    }
+}
+
+enum TrainingHistory: Int, Codable, CaseIterable, Identifiable {
+    case never = 0, under6Months, sixTo24Months, over2Years
+
+    var id: Int { rawValue }
+
+    var title: String {
+        switch self {
+        case .never: return "Never, or just starting"
+        case .under6Months: return "Less than 6 months"
+        case .sixTo24Months: return "6 months to 2 years"
+        case .over2Years: return "More than 2 years"
+        }
+    }
+}
+
+/// Workouts per week over the last three months.
+enum RecentFrequency: Int, Codable, CaseIterable, Identifiable {
+    case none = 0, oneToTwo, threeToFour, fivePlus
+
+    var id: Int { rawValue }
+
+    var title: String {
+        switch self {
+        case .none: return "None lately"
+        case .oneToTwo: return "1-2 times a week"
+        case .threeToFour: return "3-4 times a week"
+        case .fivePlus: return "5+ times a week"
+        }
+    }
+}
+
+/// Optional self-test. `nil` means "skipped".
+struct FitnessCheck: Codable, Equatable {
+    var pushups: Int?
+    var squats: Int?
+    var plankSeconds: Int?
+    var pullups: Int?
+
+    init(pushups: Int? = nil, squats: Int? = nil, plankSeconds: Int? = nil, pullups: Int? = nil) {
+        self.pushups = pushups
+        self.squats = squats
+        self.plankSeconds = plankSeconds
+        self.pullups = pullups
     }
 }
 
@@ -177,18 +246,45 @@ struct UserProfile: Codable, Equatable {
     var level: FitnessLevel = .beginner
     var goal: Goal = .stayFit
     var equipment: Equipment = .bodyweight
-    var daysPerWeek: Int = 3
     var sessionMinutes: Int = 30
     var weightKg: Double = 70
     var heightCm: Double = 170
     var age: Int = 30
+    var sex: Sex = .unspecified
     var units: UnitSystem = .metric
-    /// Adaptive difficulty offset, -3 (much easier) ... +3 (much harder).
-    var intensity: Int = 0
     var startDate: Date = Date()
     var onboarded: Bool = false
     /// Whether the user connected Apple Health (write workouts and weight, read steps).
     var healthSync: Bool = false
+
+    // Placement inputs (kept so the plan can be explained and re-derived).
+    var history: TrainingHistory = .never
+    var frequency: RecentFrequency = .none
+    var check: FitnessCheck = FitnessCheck()
+
+    /// Calendar weekdays (1 = Sunday ... 7 = Saturday) the person can train. Empty = use a sensible default.
+    var trainingWeekdays: [Int] = []
+    var limitations: [BodyArea] = []
+    var lowImpactOnly: Bool = false
+    /// Heaviest single dumbbell in kilograms. 0 means "no limit".
+    var maxDumbbellKg: Double = 0
+    var excludedExercises: [String] = []
+    /// original exercise id -> preferred replacement id (remembered from swaps).
+    var swapPreferences: [String: String] = [:]
+
+    // Adaptive state.
+    /// Difficulty offset, -3 (much easier) ... +3 (much harder).
+    var intensity: Int = 0
+    /// Current rung per progression ladder (see `Ladder`), keyed by `Ladder.rawValue`.
+    var rungs: [String: Int] = [:]
+    /// Monday of the first week of the current training block.
+    var blockStart: Date = Date()
+    /// Monday of a week that was turned into a deload because of accumulated fatigue.
+    var deloadWeekStart: Date?
+    /// When the level last changed (level moves at most once every four weeks).
+    var levelChangedAt: Date?
+    /// When each ladder last changed rung, keyed by `Ladder.rawValue`.
+    var rungChangedAt: [String: Date] = [:]
 
     init() {}
 
@@ -196,21 +292,41 @@ struct UserProfile: Codable, Equatable {
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = UserProfile()
-        name = try c.decodeIfPresent(String.self, forKey: .name) ?? d.name
-        level = try c.decodeIfPresent(FitnessLevel.self, forKey: .level) ?? d.level
-        goal = try c.decodeIfPresent(Goal.self, forKey: .goal) ?? d.goal
-        equipment = try c.decodeIfPresent(Equipment.self, forKey: .equipment) ?? d.equipment
-        daysPerWeek = try c.decodeIfPresent(Int.self, forKey: .daysPerWeek) ?? d.daysPerWeek
-        sessionMinutes = try c.decodeIfPresent(Int.self, forKey: .sessionMinutes) ?? d.sessionMinutes
-        weightKg = try c.decodeIfPresent(Double.self, forKey: .weightKg) ?? d.weightKg
-        heightCm = try c.decodeIfPresent(Double.self, forKey: .heightCm) ?? d.heightCm
-        age = try c.decodeIfPresent(Int.self, forKey: .age) ?? d.age
-        units = try c.decodeIfPresent(UnitSystem.self, forKey: .units) ?? d.units
-        intensity = try c.decodeIfPresent(Int.self, forKey: .intensity) ?? d.intensity
-        startDate = try c.decodeIfPresent(Date.self, forKey: .startDate) ?? d.startDate
-        onboarded = try c.decodeIfPresent(Bool.self, forKey: .onboarded) ?? d.onboarded
-        healthSync = try c.decodeIfPresent(Bool.self, forKey: .healthSync) ?? d.healthSync
+        func value<T: Decodable>(_ key: CodingKeys, _ fallback: T) -> T {
+            (try? c.decodeIfPresent(T.self, forKey: key)) ?? fallback
+        }
+        name = value(.name, d.name)
+        level = value(.level, d.level)
+        goal = value(.goal, d.goal)
+        equipment = value(.equipment, d.equipment)
+        sessionMinutes = value(.sessionMinutes, d.sessionMinutes)
+        weightKg = value(.weightKg, d.weightKg)
+        heightCm = value(.heightCm, d.heightCm)
+        age = value(.age, d.age)
+        sex = value(.sex, d.sex)
+        units = value(.units, d.units)
+        startDate = value(.startDate, d.startDate)
+        onboarded = value(.onboarded, d.onboarded)
+        healthSync = value(.healthSync, d.healthSync)
+        history = value(.history, d.history)
+        frequency = value(.frequency, d.frequency)
+        check = value(.check, d.check)
+        trainingWeekdays = value(.trainingWeekdays, d.trainingWeekdays)
+        limitations = value(.limitations, d.limitations)
+        lowImpactOnly = value(.lowImpactOnly, d.lowImpactOnly)
+        maxDumbbellKg = value(.maxDumbbellKg, d.maxDumbbellKg)
+        excludedExercises = value(.excludedExercises, d.excludedExercises)
+        swapPreferences = value(.swapPreferences, d.swapPreferences)
+        intensity = value(.intensity, d.intensity)
+        rungs = value(.rungs, d.rungs)
+        blockStart = value(.blockStart, d.blockStart)
+        deloadWeekStart = try? c.decodeIfPresent(Date.self, forKey: .deloadWeekStart)
+        levelChangedAt = try? c.decodeIfPresent(Date.self, forKey: .levelChangedAt)
+        rungChangedAt = value(.rungChangedAt, d.rungChangedAt)
     }
+
+    /// Days per week the person trains (derived from the chosen weekdays).
+    var daysPerWeek: Int { trainingWeekdays.isEmpty ? 3 : trainingWeekdays.count }
 }
 
 // MARK: - Exercises
@@ -277,14 +393,53 @@ struct Exercise: Identifiable, Hashable {
 
 // MARK: - Plans
 
+struct RampSet: Hashable {
+    var weightKg: Double
+    var reps: Int
+}
+
+/// The prescription for one exercise in one session.
 struct PlannedExercise: Identifiable, Hashable {
     let exerciseID: String
     var sets: Int
-    /// Reps for `.reps` exercises, seconds for `.timed` ones.
+    /// Target reps for `.reps` exercises, seconds for `.timed` ones.
     var target: Int
+    /// Rep (or second) range this exercise is progressed within.
+    var repMin: Int
+    var repMax: Int
     var restSeconds: Int
     /// Suggested working weight in kilograms (per hand for dumbbells).
     var weightKg: Double?
+    /// Reps in reserve to aim for on the last sets.
+    var repsInReserve: Int?
+    /// One-line explanation of why this is prescribed (progression, deload, comeback...).
+    var reason: String?
+    /// Lighter warm-up sets before the working sets.
+    var rampSets: [RampSet]
+
+    init(
+        exerciseID: String,
+        sets: Int,
+        target: Int,
+        repMin: Int? = nil,
+        repMax: Int? = nil,
+        restSeconds: Int,
+        weightKg: Double? = nil,
+        repsInReserve: Int? = nil,
+        reason: String? = nil,
+        rampSets: [RampSet] = []
+    ) {
+        self.exerciseID = exerciseID
+        self.sets = sets
+        self.target = target
+        self.repMin = repMin ?? target
+        self.repMax = repMax ?? target
+        self.restSeconds = restSeconds
+        self.weightKg = weightKg
+        self.repsInReserve = repsInReserve
+        self.reason = reason
+        self.rampSets = rampSets
+    }
 
     /// Exercises are unique within a workout, so the exercise id is a stable identity.
     var id: String { exerciseID }
@@ -296,8 +451,11 @@ struct PlannedExercise: Identifiable, Hashable {
         exercise.kind == .timed ? target : Int((Double(target) * 3.5).rounded())
     }
 
-    /// Total seconds including rest and setup.
-    var totalSeconds: Int { sets * (workSeconds + restSeconds) + 15 }
+    /// Total seconds including rest, warm-up sets and setup.
+    var totalSeconds: Int {
+        let ramp = rampSets.reduce(0) { $0 + Int((Double($1.reps) * 3.5).rounded()) + 45 }
+        return sets * (workSeconds + restSeconds) + 15 + ramp
+    }
 
     func calories(weightKg body: Double) -> Double {
         let active = Double(sets * workSeconds)
@@ -306,7 +464,22 @@ struct PlannedExercise: Identifiable, Hashable {
     }
 
     var targetLabel: String {
-        exercise.kind == .timed ? "\(sets) × \(target)s" : "\(sets) × \(target)"
+        if exercise.kind == .timed { return "\(sets) × \(target)s" }
+        return repMax > repMin ? "\(sets) × \(repMin)-\(repMax)" : "\(sets) × \(target)"
+    }
+}
+
+/// Where the current week sits in the training block.
+struct WeekPhase: Hashable {
+    /// 0-based position in the block.
+    var weekInBlock: Int
+    var blockLength: Int
+    var isDeload: Bool
+    /// Reps in reserve to aim for this week.
+    var repsInReserve: Int
+
+    var label: String {
+        isDeload ? "Deload week" : "Week \(weekInBlock + 1) of \(blockLength - 1)"
     }
 }
 
@@ -316,14 +489,38 @@ struct Workout: Identifiable, Hashable {
     var subtitle: String
     /// Dominant muscle group. Drives the card theme.
     var theme: MuscleGroup
+    var warmup: [PlannedExercise]
     var exercises: [PlannedExercise]
+    var phase: WeekPhase?
+    /// Headline note shown above the exercises (deload, comeback, low readiness...).
+    var note: String?
 
-    var totalSeconds: Int { exercises.reduce(0) { $0 + $1.totalSeconds } }
+    init(
+        id: String,
+        title: String,
+        subtitle: String,
+        theme: MuscleGroup,
+        warmup: [PlannedExercise] = [],
+        exercises: [PlannedExercise],
+        phase: WeekPhase? = nil,
+        note: String? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.subtitle = subtitle
+        self.theme = theme
+        self.warmup = warmup
+        self.exercises = exercises
+        self.phase = phase
+        self.note = note
+    }
+
+    var totalSeconds: Int { (warmup + exercises).reduce(0) { $0 + $1.totalSeconds } }
     var minutes: Int { max(1, Int((Double(totalSeconds) / 60).rounded())) }
     var totalSets: Int { exercises.reduce(0) { $0 + $1.sets } }
 
     func calories(weightKg: Double) -> Int {
-        Int(exercises.reduce(0.0) { $0 + $1.calories(weightKg: weightKg) }.rounded())
+        Int((warmup + exercises).reduce(0.0) { $0 + $1.calories(weightKg: weightKg) }.rounded())
     }
 }
 
@@ -351,6 +548,44 @@ enum WorkoutFeedback: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+/// How one exercise felt.
+enum Effort: String, Codable, CaseIterable, Identifiable {
+    case easy, good, hard
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .easy: return "Easy"
+        case .good: return "Good"
+        case .hard: return "Hard"
+        }
+    }
+}
+
+/// How ready the person feels today.
+enum Readiness: String, Codable, CaseIterable, Identifiable {
+    case low, normal, great
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .low: return "Rough"
+        case .normal: return "Okay"
+        case .great: return "Great"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .low: return "battery.25"
+        case .normal: return "battery.75"
+        case .great: return "battery.100"
+        }
+    }
+}
+
 struct SetLog: Codable, Hashable {
     var reps: Int
     var weightKg: Double
@@ -363,6 +598,10 @@ struct ExerciseLog: Codable, Hashable, Identifiable {
     var targetSets: Int
     var target: Int
     var sets: [SetLog]
+    /// Rep range planned for the session (nil in logs saved by older versions).
+    var repMin: Int?
+    var repMax: Int?
+    var effort: Effort?
 }
 
 struct WorkoutSession: Codable, Identifiable, Hashable {
@@ -375,6 +614,8 @@ struct WorkoutSession: Codable, Identifiable, Hashable {
     var completedSets: Int
     var logs: [ExerciseLog]
     var feedback: WorkoutFeedback?
+    var readiness: Readiness?
+    var wasDeload: Bool?
 
     var completion: Double {
         plannedSets == 0 ? 0 : Double(completedSets) / Double(plannedSets)

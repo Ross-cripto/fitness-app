@@ -17,6 +17,11 @@ let package = Package(
             ],
             sources: ["Models", "Engine", "Design/MotionData.swift"]
         ),
+        .executableTarget(
+            name: "EngineSim",
+            dependencies: ["Momentum"],
+            path: "Tools/EngineSim"
+        ),
         .testTarget(
             name: "MomentumTests",
             dependencies: ["Momentum"],

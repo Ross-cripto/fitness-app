@@ -1,9 +1,12 @@
 import Foundation
 
-/// Adjusts difficulty from how workouts actually go.
-///
-/// `intensity` is a small integer offset (-3...+3) applied to sets, reps, hold
-/// times and rest. When it runs off either end, the user's level itself moves.
+/// Everything that changes about a person's plan after a workout is saved.
+struct SessionOutcome {
+    var profile: UserProfile
+    /// Plain-language notes for the person ("Push: moving up to Push-Up", "Deload started"...).
+    var messages: [String]
+}
+
 enum AdaptiveEngine {
     static let maxIntensity = 3
 
@@ -13,110 +16,141 @@ enum AdaptiveEngine {
         var message: String?
     }
 
+    // MARK: Session feedback -> difficulty offset and level
+
+    /// - Parameters:
+    ///   - previousFeedback: how the previous session was rated. A change needs two agreeing ratings in a row,
+    ///     so one odd day does not move the plan. Finishing under 60% of the sets counts immediately.
+    ///   - canChangeLevel: level moves at most once every four weeks.
     static func evaluate(
         level: FitnessLevel,
         intensity: Int,
         feedback: WorkoutFeedback,
-        completion: Double
+        completion: Double,
+        previousFeedback: WorkoutFeedback? = nil,
+        canChangeLevel: Bool = true
     ) -> Outcome {
-        var delta: Int
-        switch feedback {
-        case .tooEasy: delta = 1
-        case .justRight: delta = 0
-        case .tooHard: delta = -1
+        var delta = 0
+        if completion < 0.6 {
+            delta = -1
+        } else if feedback == .tooEasy && previousFeedback == .tooEasy {
+            delta = 1
+        } else if feedback == .tooHard && previousFeedback == .tooHard {
+            delta = -1
         }
-        // Bailing on most of the session means it was too much, whatever they tapped.
-        if completion < 0.6 { delta = min(delta, -1) }
 
         var newLevel = level
         var newIntensity = intensity + delta
         var message: String?
 
         if newIntensity > maxIntensity {
-            if level != .advanced {
+            if level != .advanced && canChangeLevel {
                 newLevel = FitnessLevel.from(rank: level.rank + 1)
                 newIntensity = 0
                 message = "You're outgrowing this plan. Moved up to \(newLevel.title)."
             } else {
                 newIntensity = maxIntensity
-                message = "You're already at the top. Nice work."
             }
         } else if newIntensity < -maxIntensity {
-            if level != .beginner {
+            if level != .beginner && canChangeLevel {
                 newLevel = FitnessLevel.from(rank: level.rank - 1)
                 newIntensity = 0
                 message = "Let's rebuild. Moved down to \(newLevel.title) so training stays sustainable."
             } else {
                 newIntensity = -maxIntensity
-                message = "Taking it easy. Consistency beats intensity."
             }
         } else if delta > 0 {
-            message = "Great. Your next workouts will be a bit tougher."
+            message = "Your last two sessions felt easy, so upcoming workouts get a bit tougher."
         } else if delta < 0 {
-            message = "Got it. Your next workouts will be a notch easier."
+            message = "Your recent sessions were hard, so upcoming workouts get a notch easier."
         }
 
         return Outcome(level: newLevel, intensity: newIntensity, message: message)
     }
 
-    /// Intensity used for planning. After a long break we ease the user back in.
-    static func effectiveIntensity(profile: UserProfile, history: [WorkoutSession], now: Date = Date()) -> Int {
-        guard let last = history.map({ $0.date }).max() else { return profile.intensity }
-        let calendar = Calendar.current
-        let days = calendar.dateComponents(
-            [.day],
-            from: calendar.startOfDay(for: last),
-            to: calendar.startOfDay(for: now)
-        ).day ?? 0
-        if days >= 21 { return min(profile.intensity, -2) }
-        if days >= 10 { return min(profile.intensity, -1) }
-        return profile.intensity
-    }
-}
+    // MARK: Applying a finished session
 
-/// Progressive overload for weighted exercises.
-enum WeightAdvisor {
-    static func suggest(for exercise: Exercise, profile: UserProfile, history: [WorkoutSession]) -> Double? {
-        guard let ratio = exercise.loadRatio else { return nil }
+    /// - Parameters:
+    ///   - history: all sessions **including** `session`.
+    ///   - previousSessionDate: the date of the session before this one, if any.
+    static func apply(
+        session: WorkoutSession,
+        to profile: UserProfile,
+        history: [WorkoutSession],
+        previousSessionDate: Date?
+    ) -> SessionOutcome {
+        var p = profile
+        var messages: [String] = []
+        let earlier = history.filter { $0.id != session.id }
 
-        if let last = lastLog(for: exercise.id, in: history),
-           let top = last.sets.map({ $0.weightKg }).max(), top > 0 {
-            let allSetsDone = last.sets.count >= last.targetSets
-            let hitEveryRep = last.sets.allSatisfy { $0.reps >= last.target }
-            let totalReps = last.sets.reduce(0) { $0 + $1.reps }
-            let averageReps = Double(totalReps) / Double(max(1, last.sets.count))
-
-            if allSetsDone && hitEveryRep {
-                return roundLoad(top + increment(after: top))
-            }
-            if averageReps < 0.7 * Double(last.target) {
-                return roundLoad(top * 0.95)
-            }
-            return top
+        // 1. Overall difficulty and level from how the session felt.
+        if let feedback = session.feedback {
+            let previousFeedback = earlier.sorted { $0.date > $1.date }.first?.feedback
+            let sinceLevelChange = TrainingCalendar.daysBetween(p.levelChangedAt ?? p.startDate, session.date)
+            let outcome = evaluate(
+                level: p.level, intensity: p.intensity, feedback: feedback, completion: session.completion,
+                previousFeedback: previousFeedback, canChangeLevel: sinceLevelChange >= 28
+            )
+            if outcome.level != p.level { p.levelChangedAt = session.date }
+            p.level = outcome.level
+            p.intensity = outcome.intensity
+            if let message = outcome.message { messages.append(message) }
         }
 
-        let estimate = ratio * profile.weightKg * profile.level.weightFactor
-        return roundLoad(max(estimate, 2))
-    }
+        // 2. Bodyweight ladders: move up when the top of the range is reached, back down after two misses.
+        for log in session.logs {
+            let exercise = ExerciseLibrary.exercise(log.exerciseID)
+            guard let ladder = exercise.meta.ladder else { continue }
+            let rung = exercise.meta.rung
+            let current = PlanGenerator.rung(ladder, profile: p)
+            let range = Progression.repRange(for: exercise, goal: p.goal, level: p.level)
+            // One rung change per ladder every two weeks, so a hard week can't cause back-and-forth.
+            let recentlyChanged = p.rungChangedAt[ladder.rawValue].map {
+                TrainingCalendar.daysBetween($0, session.date) < 14
+            } ?? false
+            if recentlyChanged { continue }
 
-    static func lastLog(for exerciseID: String, in history: [WorkoutSession]) -> ExerciseLog? {
-        for session in history.sorted(by: { $0.date > $1.date }) {
-            if let log = session.logs.first(where: { $0.exerciseID == exerciseID && !$0.sets.isEmpty }) {
-                return log
+            if Progression.reachedTop(log, exercise: exercise, range: range), rung >= current,
+               current < ExerciseMetaTable.maxRung(ladder),
+               let next = nextRungExercise(ladder: ladder, rung: current + 1, profile: p) {
+                p.rungs[ladder.rawValue] = current + 1
+                p.rungChangedAt[ladder.rawValue] = session.date
+                messages.append("\(ladder.title): moving up to \(next.name).")
+            } else if rung == current, current > 0,
+                      Progression.failed(log, exercise: exercise, range: range, tolerance: 3),
+                      case let recent = Progression.recentLogs(for: exercise.id, in: earlier, limit: 2),
+                      recent.count == 2,
+                      recent.allSatisfy({ Progression.failed($0, exercise: exercise, range: range, tolerance: 3) }) {
+                p.rungs[ladder.rawValue] = current - 1
+                p.rungChangedAt[ladder.rawValue] = session.date
+                messages.append("\(ladder.title): stepping back to an easier variation so you can build up again.")
             }
         }
-        return nil
+
+        // 3. A long gap restarts the block.
+        if let previous = previousSessionDate, TrainingCalendar.daysBetween(previous, session.date) >= 14 {
+            p.blockStart = TrainingCalendar.weekStart(of: session.date)
+            p.deloadWeekStart = nil
+            messages.append("Welcome back. A fresh training block starts this week.")
+        }
+
+        // 4. Accumulated fatigue turns the rest of the week into a deload.
+        let phase = Periodization.phase(on: session.date, profile: p, history: history, now: session.date)
+        if Recovery.shouldDeload(profile: p, history: history, phase: phase, now: session.date) {
+            let weekStart = TrainingCalendar.weekStart(of: session.date)
+            p.deloadWeekStart = weekStart
+            p.blockStart = TrainingCalendar.calendar.date(byAdding: .day, value: 7, to: weekStart) ?? weekStart
+            messages.append("You've been under a lot of strain. The rest of this week is a lighter deload, then a fresh block.")
+        }
+
+        return SessionOutcome(profile: p, messages: messages)
     }
 
-    static func increment(after weight: Double) -> Double {
-        if weight < 10 { return 0.5 }
-        if weight < 20 { return 1 }
-        return 2.5
-    }
-
-    static func roundLoad(_ value: Double) -> Double {
-        let step: Double
-        if value < 10 { step = 0.5 } else if value < 20 { step = 1 } else { step = 2.5 }
-        return max(step, (value / step).rounded() * step)
+    /// The first allowed exercise on a rung (used to name what the person is moving up to).
+    static func nextRungExercise(ladder: Ladder, rung: Int, profile: UserProfile) -> Exercise? {
+        let ids = ExerciseMetaTable.ladders[ladder]?[rung] ?? []
+        return ids
+            .map { ExerciseLibrary.exercise($0) }
+            .first { PlanGenerator.isAllowed($0, profile: profile) }
     }
 }
