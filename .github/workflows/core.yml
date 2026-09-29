@@ -2,7 +2,6 @@ name: Core engine tests (Linux)
 
 on:
   push:
-    branches-ignore: [ci-screenshots]
   pull_request:
 
 jobs:

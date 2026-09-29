@@ -51,7 +51,7 @@ The catalogue lives in [`data/exercises.json`](../data/exercises.json): name, st
 | Engine, models, backup, reminders, localization | `swift test` (170+ tests, Linux or macOS) |
 | Whole plans over time | `swift run EngineSim sim` |
 | SwiftUI compiles, unit tests in the app target | CI: `ios.yml` |
-| Screens in all three languages, launch smoke test | CI: `screenshots.yml` (UI tests with demo data; PNGs land on the `ci-screenshots` branch) |
+| Screens in all three languages, launch smoke test | CI: `screenshots.yml` (UI tests with demo data; PNGs are a downloadable artifact of the run) |
 | Translations complete | CI: `core.yml` `translations` job |
 
 Launch arguments for tests and demos are in `Store/LaunchMode.swift`; `Engine/DemoData.swift` builds six weeks of realistic history using the engine itself.
