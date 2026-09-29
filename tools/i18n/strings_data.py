@@ -108,3 +108,19 @@ PT.update({
     "A quiet notification on the days you plan to train, with that day's workout. It is scheduled on this phone; nothing is sent anywhere.":
         "Uma notificação discreta nos dias em que você planeja treinar, com o treino do dia. Ela é agendada neste celular; nada é enviado para lugar nenhum.",
 })
+
+# Exercise progress chart
+ES.update({
+    "Your progress": "Tu progreso",
+    "Estimated 1RM": "1RM estimado",
+    "Reps in your best set": "Repeticiones en tu mejor serie",
+    "Longest hold": "Mayor tiempo sostenido",
+    "{0} → {1}": "{0} → {1}",
+})
+PT.update({
+    "Your progress": "Seu progresso",
+    "Estimated 1RM": "1RM estimado",
+    "Reps in your best set": "Repetições na sua melhor série",
+    "Longest hold": "Maior tempo sustentado",
+    "{0} → {1}": "{0} → {1}",
+})

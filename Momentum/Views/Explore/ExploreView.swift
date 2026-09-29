@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 
 struct ExploreView: View {
     @State private var query = ""
@@ -133,6 +134,8 @@ struct ExerciseDetailView: View {
                         .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
                     }
 
+                    progressCard
+
                     if let best = store.bestSet(for: exercise.id) {
                         VStack(alignment: .leading, spacing: 6) {
                             Text(L("Your best"))
@@ -152,6 +155,55 @@ struct ExerciseDetailView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    // MARK: Progress
+
+    @ViewBuilder
+    private var progressCard: some View {
+        let points = ExerciseProgress.series(exerciseID: exercise.id, sessions: store.sessions)
+        if points.count >= 2, let first = points.first, let last = points.last {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(L("Your progress"))
+                    .font(.system(size: 17, weight: .semibold))
+                Text(progressTitle)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                Chart(points) { point in
+                    LineMark(x: .value(L("Date"), point.date), y: .value(progressTitle, displayValue(point.value)))
+                        .foregroundStyle(Theme.pink)
+                    PointMark(x: .value(L("Date"), point.date), y: .value(progressTitle, displayValue(point.value)))
+                        .foregroundStyle(Theme.pink)
+                }
+                .chartYScale(domain: .automatic(includesZero: false))
+                .frame(height: 150)
+                Text(L("{0} → {1}", valueText(first.value), valueText(last.value)))
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Theme.pink)
+            }
+            .card()
+        }
+    }
+
+    private var progressTitle: String {
+        switch ExerciseProgress.metric(for: exercise) {
+        case .oneRepMax: return L("Estimated 1RM")
+        case .reps: return L("Reps in your best set")
+        case .seconds: return L("Longest hold")
+        }
+    }
+
+    /// Chart values in the person's units (pounds when they use pounds).
+    private func displayValue(_ value: Double) -> Double {
+        ExerciseProgress.metric(for: exercise) == .oneRepMax ? store.profile.units.displayWeight(value) : value
+    }
+
+    private func valueText(_ value: Double) -> String {
+        switch ExerciseProgress.metric(for: exercise) {
+        case .oneRepMax: return store.profile.units.formatWeight(value)
+        case .reps: return Lp(Int(value.rounded()), one: "{0} rep", other: "{0} reps")
+        case .seconds: return L("{0} sec", Int(value.rounded()))
         }
     }
 
