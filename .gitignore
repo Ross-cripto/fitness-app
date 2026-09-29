@@ -6,3 +6,4 @@ build/
 *.xcworkspace/xcuserdata/
 .DS_Store
 .swiftpm/
+tools/mockups/.cache/

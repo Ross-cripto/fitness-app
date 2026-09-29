@@ -17,8 +17,15 @@ Built with SwiftUI and Swift Charts. Requires iOS 17+.
 - **Progress.** Weekly calories and minutes against what your plan asked for, daily-minutes chart, body-weight trend, personal records, workout streak.
 - **Workout player.** Per-set reps/weight steppers, timed holds, rest timer, screen stays awake, swap any exercise for an alternative.
 - **Animated demonstrations.** Every one of the 74 exercises has a looping figure animation showing the actual movement, with props (bench, chair, bar, dumbbells, barbell, cables). They play in the workout player, the workout list and the exercise sheet. Drawn in code from bundled data, so they work offline; they respect *Reduce Motion*.
+- **Apple Health.** Optional. Finished workouts (with energy burned) and body weight are saved to Health; today's steps and active energy (including Apple Watch) are read back and shown on the home and Progress screens; you can pull your latest weight from Health. Turn it on in onboarding or *Settings*. Nothing leaves your device.
+- **How-to videos.** Every exercise has a *Watch a video on YouTube* link (exercise sheet and workout player). By default it opens a YouTube search for proper-form tutorials of that exercise; to pin a specific video, add its URL to `ExerciseLibrary.curatedVideos`.
 - **Explore.** Searchable library of 74 exercises with animation and step-by-step instructions.
 - **Quick workouts.** 10-minute blast, wall/no-equipment full body, mobility & stretch.
+
+![Screens](docs/app-screens-1.png)
+![Screens](docs/app-screens-2.png)
+
+*(Mockups rendered from the app's layout and real animation data, not simulator screenshots.)*
 
 The UI follows the three reference screens: Workouts home (streak, stats, workout cards), Workout detail (dark hero, exercise list with swap, *Start Workout*), and Progress (date strip, Calorie and Duration cards).
 
@@ -70,5 +77,6 @@ project.yml     XcodeGen project definition
 
 - Exercise demos are stylised stick-figure animations, not video. Workout cards use gradients. See `tools/README.md` to edit or add animations.
 - Calories are estimates from MET values, not measured.
-- No Apple Health / Watch integration yet (steps from the reference design were replaced by completed sets, since they need HealthKit).
+- Apple Health needs a real signing team (a free Apple ID works) because HealthKit is an entitlement. There is no Apple Watch app yet, but Watch activity shows up through Health.
+- YouTube links are searches unless you add curated URLs.
 - Data lives only on the device. Deleting the app deletes your history.
