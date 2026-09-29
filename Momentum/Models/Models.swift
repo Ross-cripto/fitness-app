@@ -243,7 +243,6 @@ struct Exercise: Identifiable, Hashable {
 // MARK: - Plans
 
 struct PlannedExercise: Identifiable, Hashable {
-    let id = UUID()
     let exerciseID: String
     var sets: Int
     /// Reps for `.reps` exercises, seconds for `.timed` ones.
@@ -251,6 +250,9 @@ struct PlannedExercise: Identifiable, Hashable {
     var restSeconds: Int
     /// Suggested working weight in kilograms (per hand for dumbbells).
     var weightKg: Double?
+
+    /// Exercises are unique within a workout, so the exercise id is a stable identity.
+    var id: String { exerciseID }
 
     var exercise: Exercise { ExerciseLibrary.exercise(exerciseID) }
 

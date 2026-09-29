@@ -18,13 +18,13 @@ struct MainTabView: View {
     var body: some View {
         TabView(selection: $tab) {
             ProgressTabView()
-                .tabItem { Image(systemName: "chart.pie.fill") }
+                .tabItem { Image(systemName: "chart.pie.fill").accessibilityLabel("Progress") }
                 .tag(0)
             WorkoutsView()
-                .tabItem { Image(systemName: "flame.fill") }
+                .tabItem { Image(systemName: "flame.fill").accessibilityLabel("Workouts") }
                 .tag(1)
             ExploreView()
-                .tabItem { Image(systemName: "magnifyingglass") }
+                .tabItem { Image(systemName: "magnifyingglass").accessibilityLabel("Explore") }
                 .tag(2)
         }
         .tint(Theme.pink)

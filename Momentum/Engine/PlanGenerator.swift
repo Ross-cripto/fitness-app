@@ -256,7 +256,8 @@ enum PlanGenerator {
     ) -> Workout {
         let intensity = AdaptiveEngine.effectiveIntensity(profile: profile, history: history, now: now)
         let budget = budgetMinutes ?? profile.sessionMinutes
-        let wanted = exerciseCount ?? max(3, min(9, Int((Double(budget) / 5.5).rounded())))
+        // Build a generous list, then trim to the time budget below.
+        let wanted = exerciseCount ?? 8
 
         var chosen: [Exercise] = []
         for index in 0..<wanted {
@@ -307,13 +308,14 @@ enum PlanGenerator {
         }
         guard !pool.isEmpty else { return nil }
 
-        // Avoid exercises that are far too easy for the user's level.
-        let suitable = pool.filter { $0.level.rank >= profile.level.rank - 1 }
-        if !suitable.isEmpty { pool = suitable }
+        // Use the best equipment the user has, then skip moves far too easy for their level.
+        let bestEquipment = pool.map { $0.equipment.rank }.max() ?? 0
+        let preferred = pool.filter { $0.equipment.rank == bestEquipment }
+        let suitable = preferred.filter { $0.level.rank >= profile.level.rank - 1 }
+        pool = suitable.isEmpty ? preferred : suitable
 
-        // Prefer the user's best equipment, then the hardest suitable variation.
+        // Hardest suitable variation first.
         let ranked = pool.sorted { a, b in
-            if a.equipment.rank != b.equipment.rank { return a.equipment.rank > b.equipment.rank }
             if a.level.rank != b.level.rank { return a.level.rank > b.level.rank }
             return a.id < b.id
         }

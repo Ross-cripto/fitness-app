@@ -41,11 +41,18 @@ final class AppStore: ObservableObject {
     init(fileURL: URL? = nil) {
         let url = fileURL ?? AppStore.defaultURL()
         self.fileURL = url
-        if let data = try? Data(contentsOf: url),
-           let snapshot = try? AppStore.decoder.decode(Snapshot.self, from: data) {
-            profile = snapshot.profile
-            sessions = snapshot.sessions
-            weights = snapshot.weights
+        if let data = try? Data(contentsOf: url) {
+            if let snapshot = try? AppStore.decoder.decode(Snapshot.self, from: data) {
+                profile = snapshot.profile
+                sessions = snapshot.sessions
+                weights = snapshot.weights
+            } else {
+                // Never overwrite data we couldn't read: keep a copy first.
+                let backup = url.deletingLastPathComponent().appendingPathComponent("momentum-data.unreadable.json")
+                try? FileManager.default.removeItem(at: backup)
+                try? FileManager.default.copyItem(at: url, to: backup)
+                profile = UserProfile()
+            }
         } else {
             profile = UserProfile()
         }
@@ -191,7 +198,7 @@ final class AppStore: ObservableObject {
         var calories = 0
         var minutes = 0
         for day in weekDays(containing: date) {
-            if let planned = workout(on: day) {
+            if let planned = PlanGenerator.workout(on: day, profile: profile, history: []) {
                 calories += planned.calories(weightKg: profile.weightKg)
                 minutes += planned.minutes
             }

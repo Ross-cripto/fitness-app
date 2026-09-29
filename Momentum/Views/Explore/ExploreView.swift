@@ -94,10 +94,10 @@ struct ExerciseDetailView: View {
                         .font(.system(size: 28, weight: .bold))
 
                     HStack(spacing: 8) {
-                        tag(exercise.muscle.title)
-                        tag(exercise.equipment.title)
-                        tag(exercise.level.title)
-                        if exercise.kind == .timed { tag("Timed") }
+                        pill(exercise.muscle.title)
+                        pill(exercise.equipment.title)
+                        pill(exercise.level.title)
+                        if exercise.kind == .timed { pill("Timed") }
                     }
 
                     VStack(alignment: .leading, spacing: 12) {
@@ -138,7 +138,7 @@ struct ExerciseDetailView: View {
         }
     }
 
-    private func tag(_ text: String) -> some View {
+    private func pill(_ text: String) -> some View {
         Text(text)
             .font(.system(size: 12, weight: .semibold))
             .padding(.horizontal, 10)
