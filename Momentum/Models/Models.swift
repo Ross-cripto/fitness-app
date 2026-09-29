@@ -187,6 +187,30 @@ struct UserProfile: Codable, Equatable {
     var intensity: Int = 0
     var startDate: Date = Date()
     var onboarded: Bool = false
+    /// Whether the user connected Apple Health (write workouts and weight, read steps).
+    var healthSync: Bool = false
+
+    init() {}
+
+    /// Tolerant decoding so files saved by older versions keep loading when fields are added.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = UserProfile()
+        name = try c.decodeIfPresent(String.self, forKey: .name) ?? d.name
+        level = try c.decodeIfPresent(FitnessLevel.self, forKey: .level) ?? d.level
+        goal = try c.decodeIfPresent(Goal.self, forKey: .goal) ?? d.goal
+        equipment = try c.decodeIfPresent(Equipment.self, forKey: .equipment) ?? d.equipment
+        daysPerWeek = try c.decodeIfPresent(Int.self, forKey: .daysPerWeek) ?? d.daysPerWeek
+        sessionMinutes = try c.decodeIfPresent(Int.self, forKey: .sessionMinutes) ?? d.sessionMinutes
+        weightKg = try c.decodeIfPresent(Double.self, forKey: .weightKg) ?? d.weightKg
+        heightCm = try c.decodeIfPresent(Double.self, forKey: .heightCm) ?? d.heightCm
+        age = try c.decodeIfPresent(Int.self, forKey: .age) ?? d.age
+        units = try c.decodeIfPresent(UnitSystem.self, forKey: .units) ?? d.units
+        intensity = try c.decodeIfPresent(Int.self, forKey: .intensity) ?? d.intensity
+        startDate = try c.decodeIfPresent(Date.self, forKey: .startDate) ?? d.startDate
+        onboarded = try c.decodeIfPresent(Bool.self, forKey: .onboarded) ?? d.onboarded
+        healthSync = try c.decodeIfPresent(Bool.self, forKey: .healthSync) ?? d.healthSync
+    }
 }
 
 // MARK: - Exercises
@@ -238,6 +262,17 @@ struct Exercise: Identifiable, Hashable {
     let steps: [String]
 
     var isLoaded: Bool { loadRatio != nil }
+
+    /// A how-to video for this exercise. Uses a curated link from
+    /// `ExerciseLibrary.curatedVideos` when there is one, otherwise a YouTube search for proper form.
+    var videoURL: URL {
+        if let curated = ExerciseLibrary.curatedVideos[id], let url = URL(string: curated) {
+            return url
+        }
+        var components = URLComponents(string: "https://www.youtube.com/results")!
+        components.queryItems = [URLQueryItem(name: "search_query", value: "\(name) proper form tutorial")]
+        return components.url ?? URL(string: "https://www.youtube.com")!
+    }
 }
 
 // MARK: - Plans

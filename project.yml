@@ -27,6 +27,13 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        INFOPLIST_KEY_NSHealthShareUsageDescription: "Momentum reads your steps, active energy and body weight from Apple Health to show your progress."
+        INFOPLIST_KEY_NSHealthUpdateUsageDescription: "Momentum saves your finished workouts and body weight to Apple Health."
+    entitlements:
+      path: Momentum/Momentum.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.access: []
   MomentumTests:
     type: bundle.unit-test
     platform: iOS

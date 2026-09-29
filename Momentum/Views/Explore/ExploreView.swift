@@ -111,6 +111,28 @@ struct ExerciseDetailView: View {
                         }
                     }
 
+                    Link(destination: exercise.videoURL) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "play.rectangle.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(.red)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("Watch a video on YouTube")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                Text("Proper-form tutorials for \(exercise.name)")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(14)
+                        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
+                    }
+
                     if let best = store.bestSet(for: exercise.id) {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Your best")

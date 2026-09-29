@@ -2,6 +2,8 @@ import SwiftUI
 
 struct WorkoutsView: View {
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var health: HealthService
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationStack {
@@ -10,11 +12,15 @@ struct WorkoutsView: View {
                     header
                     summary
                     stats
+                    WeekStrip()
                     cards
                 }
             }
             .background(Color(.systemBackground))
             .toolbar(.hidden, for: .navigationBar)
+            .task(id: scenePhase) {
+                if store.profile.healthSync && scenePhase == .active { await health.refreshToday() }
+            }
         }
     }
 
@@ -86,7 +92,11 @@ struct WorkoutsView: View {
         return HStack(spacing: 22) {
             StatPill(symbol: "flame.fill", value: "\(calories)", unit: "cal", tint: Theme.pink)
             StatPill(symbol: "timer", value: "\(minutes)", unit: "min", tint: Theme.green)
-            StatPill(symbol: "checkmark.circle.fill", value: "\(sets)", unit: "sets", tint: Theme.amber)
+            if store.profile.healthSync {
+                StatPill(symbol: "figure.walk", value: "\(health.steps)", unit: "steps", tint: Theme.amber)
+            } else {
+                StatPill(symbol: "checkmark.circle.fill", value: "\(sets)", unit: "sets", tint: Theme.amber)
+            }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)

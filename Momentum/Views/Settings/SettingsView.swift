@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var health: HealthService
     @Environment(\.dismiss) private var dismiss
     @State private var confirmReset = false
 
@@ -41,6 +42,21 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    Toggle("Sync with Apple Health", isOn: healthBinding)
+                        .tint(Theme.pink)
+                        .disabled(!HealthService.isAvailable)
+                    if let message = health.lastError {
+                        Text(message)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                    }
+                } header: {
+                    Text("Apple Health")
+                } footer: {
+                    Text("Saves finished workouts and body weight to Health, and reads your steps and active energy. Data stays on this device and in your Health app. You can change permissions any time in Settings → Health → Data Access & Devices.")
+                }
+
+                Section {
                     LabeledContent("Adaptive intensity", value: intensityText)
                     Button("Reset adaptation") { store.resetAdaptation() }
                 } header: {
@@ -70,6 +86,23 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) {}
             }
         }
+    }
+
+    private var healthBinding: Binding<Bool> {
+        Binding(
+            get: { store.profile.healthSync },
+            set: { enabled in
+                if enabled {
+                    Task {
+                        let granted = await health.requestAccess()
+                        store.profile.healthSync = granted
+                        if granted { await health.refreshToday() }
+                    }
+                } else {
+                    store.profile.healthSync = false
+                }
+            }
+        )
     }
 
     private var intensityText: String {

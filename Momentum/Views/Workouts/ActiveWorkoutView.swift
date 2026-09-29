@@ -6,6 +6,7 @@ struct ActiveWorkoutView: View {
     let onClose: () -> Void
 
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var health: HealthService
 
     private struct SetEntry: Identifiable {
         let id = UUID()
@@ -126,6 +127,11 @@ struct ActiveWorkoutView: View {
                             .font(.system(size: 14))
                             .foregroundStyle(Color.white.opacity(0.8))
                     }
+                    Link(destination: exercise.videoURL) {
+                        Label("Watch a video on YouTube", systemImage: "play.rectangle.fill")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .padding(.top, 4)
                 }
                 .padding(.top, 6)
             }
@@ -255,6 +261,11 @@ struct ActiveWorkoutView: View {
                     Button("Close") { onClose() }
                         .buttonStyle(PillButtonStyle())
                 } else if saved {
+                    if store.profile.healthSync {
+                        Label("Saved to Apple Health", systemImage: "heart.fill")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(Theme.pink)
+                    }
                     if let message = adaptationMessage {
                         Label(message, systemImage: "wand.and.stars")
                             .font(.system(size: 16, weight: .medium))
@@ -411,6 +422,9 @@ struct ActiveWorkoutView: View {
         )
         adaptationMessage = store.record(session)
         saved = true
+        if store.profile.healthSync {
+            Task { await health.saveWorkout(session) }
+        }
     }
 
     private func weightText(_ value: Double) -> String {

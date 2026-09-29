@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WorkoutDetailView: View {
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var health: HealthService
     @Environment(\.dismiss) private var dismiss
 
     @State private var current: Workout
@@ -73,6 +74,7 @@ struct WorkoutDetailView: View {
                 dismiss()
             }
             .environmentObject(store)
+            .environmentObject(health)
         }
         .sheet(item: $infoExercise) { exercise in
             ExerciseDetailView(exercise: exercise)

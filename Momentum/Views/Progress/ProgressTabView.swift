@@ -3,6 +3,7 @@ import Charts
 
 struct ProgressTabView: View {
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var health: HealthService
 
     @State private var selected = Calendar.current.startOfDay(for: Date())
     @State private var showSettings = false
@@ -20,6 +21,7 @@ struct ProgressTabView: View {
                     calorieCard
                     durationCard
                     weightCard
+                    healthCard
                     recordsCard
                     daySessions
                 }
@@ -28,11 +30,14 @@ struct ProgressTabView: View {
                 .padding(.bottom, 32)
             }
             .toolbar(.hidden, for: .navigationBar)
+            .task {
+                if store.profile.healthSync { await health.refreshToday() }
+            }
             .sheet(isPresented: $showSettings) {
-                SettingsView().environmentObject(store)
+                SettingsView().environmentObject(store).environmentObject(health)
             }
             .sheet(isPresented: $showWeightSheet) {
-                LogWeightSheet().environmentObject(store)
+                LogWeightSheet().environmentObject(store).environmentObject(health)
                     .presentationDetents([.medium])
             }
         }
@@ -250,6 +255,40 @@ struct ProgressTabView: View {
         .card()
     }
 
+    private var healthCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            IconBadge(symbol: "heart.fill", tint: Color(hex: 0xFF3B5C), size: 42)
+            Text("Apple Health")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Color(hex: 0xFF3B5C))
+            if store.profile.healthSync {
+                HStack(spacing: 24) {
+                    StatPill(symbol: "figure.walk", value: "\(health.steps)", unit: "steps today", tint: Theme.amber, large: false)
+                    StatPill(symbol: "flame.fill", value: "\(health.activeCalories)", unit: "active cal", tint: Theme.pink, large: false)
+                }
+                Text("Workouts and body weight you log here are saved to Apple Health.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+            } else {
+                Text("Save your workouts and weight to Apple Health, and see today's steps and active energy, including Apple Watch data.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+                Button("Connect Apple Health") {
+                    Task {
+                        if await health.requestAccess() {
+                            store.profile.healthSync = true
+                            await health.refreshToday()
+                        }
+                    }
+                }
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color(hex: 0xFF3B5C))
+                .disabled(!HealthService.isAvailable)
+            }
+        }
+        .card()
+    }
+
     private var recordsCard: some View {
         let records = store.personalRecords()
         return VStack(alignment: .leading, spacing: 12) {
@@ -312,6 +351,7 @@ struct ProgressTabView: View {
 
 struct LogWeightSheet: View {
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var health: HealthService
     @Environment(\.dismiss) private var dismiss
     @State private var display: Double = 0
 
@@ -325,10 +365,28 @@ struct LogWeightSheet: View {
                     .font(.system(size: 20))
             }
             Button("Save") {
-                store.addWeight(kg: units.kg(fromDisplay: display))
+                let kg = units.kg(fromDisplay: display)
+                store.addWeight(kg: kg)
+                if store.profile.healthSync {
+                    Task { await health.saveBodyWeight(kg: kg) }
+                }
                 dismiss()
             }
             .buttonStyle(PillButtonStyle(tint: Theme.blue))
+            if store.profile.healthSync {
+                Button {
+                    Task {
+                        if let kg = await health.latestBodyWeightKg() {
+                            store.addWeight(kg: kg)
+                            dismiss()
+                        }
+                    }
+                } label: {
+                    Label("Use latest weight from Apple Health", systemImage: "heart.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundStyle(Color(hex: 0xFF3B5C))
+            }
             Spacer()
         }
         .padding(24)

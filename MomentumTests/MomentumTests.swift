@@ -299,3 +299,37 @@ final class MotionTests: XCTestCase {
         }
     }
 }
+
+final class LinksAndPersistenceTests: XCTestCase {
+    func testEveryExerciseHasAYouTubeLink() {
+        for exercise in ExerciseLibrary.all {
+            let url = exercise.videoURL
+            XCTAssertEqual(url.host, "www.youtube.com", exercise.id)
+            let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+                .queryItems?.first { $0.name == "search_query" }?.value
+            XCTAssertEqual(query, "\(exercise.name) proper form tutorial", exercise.id)
+        }
+    }
+
+    func testProfileFromOlderVersionStillDecodes() throws {
+        // A save file written before `healthSync` existed, and with some fields missing.
+        let json = #"{"name":"Sam","level":"intermediate","daysPerWeek":4,"onboarded":true}"#
+        let profile = try JSONDecoder().decode(UserProfile.self, from: Data(json.utf8))
+        XCTAssertEqual(profile.name, "Sam")
+        XCTAssertEqual(profile.level, .intermediate)
+        XCTAssertEqual(profile.daysPerWeek, 4)
+        XCTAssertTrue(profile.onboarded)
+        XCTAssertFalse(profile.healthSync)
+        XCTAssertEqual(profile.sessionMinutes, 30)
+    }
+
+    func testProfileRoundTrips() throws {
+        var profile = UserProfile()
+        profile.healthSync = true
+        profile.goal = .buildMuscle
+        profile.weightKg = 82.5
+        let data = try JSONEncoder().encode(profile)
+        let decoded = try JSONDecoder().decode(UserProfile.self, from: data)
+        XCTAssertEqual(decoded, profile)
+    }
+}

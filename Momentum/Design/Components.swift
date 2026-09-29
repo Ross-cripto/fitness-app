@@ -141,3 +141,43 @@ struct ProgressBar: View {
 func formatClock(_ seconds: Int) -> String {
     String(format: "%d:%02d", seconds / 60, seconds % 60)
 }
+
+/// Mon-Sun row: filled = trained, ring = scheduled, faint ring = rest day.
+struct WeekStrip: View {
+    @EnvironmentObject private var store: AppStore
+
+    var body: some View {
+        let calendar = PlanGenerator.calendar
+        let today = calendar.startOfDay(for: Date())
+        let start = calendar.dateInterval(of: .weekOfYear, for: today)?.start ?? today
+        let days = (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: start) }
+
+        HStack(spacing: 0) {
+            ForEach(days, id: \.self) { day in
+                let done = !store.sessions(on: day).isEmpty
+                let scheduled = PlanGenerator.isTrainingDay(day, profile: store.profile)
+                let isToday = calendar.isDate(day, inSameDayAs: today)
+                VStack(spacing: 6) {
+                    Text(day.formatted(.dateTime.weekday(.narrow)))
+                        .font(.system(size: 12, weight: isToday ? .bold : .medium))
+                        .foregroundStyle(isToday ? Theme.pink : Color.secondary)
+                    ZStack {
+                        Circle().fill(done ? Theme.pink : Color.clear)
+                        Circle().stroke(scheduled || done ? Theme.pink : Color.primary.opacity(0.12), lineWidth: 2)
+                        if done {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .frame(width: 28, height: 28)
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.bottom, 16)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("This week's training schedule")
+    }
+}

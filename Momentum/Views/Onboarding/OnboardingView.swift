@@ -2,6 +2,7 @@ import SwiftUI
 
 struct OnboardingView: View {
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var health: HealthService
     @State private var draft = UserProfile()
     @State private var step = 0
 
@@ -167,6 +168,21 @@ struct OnboardingView: View {
                 Text("Age **\(draft.age)**")
             }
 
+            Toggle(isOn: healthBinding) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Connect Apple Health")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("Save workouts and weight to Health and show your steps.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .tint(Theme.pink)
+            .disabled(!HealthService.isAvailable)
+            .padding(14)
+            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
+            .padding(.top, 4)
+
             Label("Nothing leaves your phone. There is no account and no tracking.", systemImage: "lock.fill")
                 .font(.system(size: 13))
                 .foregroundStyle(.secondary)
@@ -214,6 +230,19 @@ struct OnboardingView: View {
 
     private var heightRange: ClosedRange<Double> {
         draft.units == .metric ? 120...230 : 48...90
+    }
+
+    private var healthBinding: Binding<Bool> {
+        Binding(
+            get: { draft.healthSync },
+            set: { enabled in
+                if enabled {
+                    Task { draft.healthSync = await health.requestAccess() }
+                } else {
+                    draft.healthSync = false
+                }
+            }
+        )
     }
 
     private var weightBinding: Binding<Double> {

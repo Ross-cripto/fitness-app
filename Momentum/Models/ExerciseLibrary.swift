@@ -7,6 +7,10 @@ enum ExerciseLibrary {
         byID[id] ?? all[0]
     }
 
+    /// Optional hand-picked video per exercise id, e.g. `"pushup": "https://www.youtube.com/watch?v=..."`.
+    /// Exercises without an entry link to a YouTube search for proper form instead.
+    static let curatedVideos: [String: String] = [:]
+
     static let byID: [String: Exercise] = {
         var map: [String: Exercise] = [:]
         for exercise in all { map[exercise.id] = exercise }
