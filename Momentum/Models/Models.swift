@@ -286,6 +286,8 @@ struct UserProfile: Codable, Equatable {
     var rungs: [String: Int] = [:]
     /// Monday of the first week of the current training block.
     var blockStart: Date = Date()
+    /// Blocks completed before `blockStart` (keeps exercise rotation moving when a block is restarted).
+    var blockOffset: Int = 0
     /// Monday of a week that was turned into a deload because of accumulated fatigue.
     var deloadWeekStart: Date?
     /// When the level last changed (level moves at most once every four weeks).
@@ -328,6 +330,7 @@ struct UserProfile: Codable, Equatable {
         intensity = value(.intensity, d.intensity)
         rungs = value(.rungs, d.rungs)
         blockStart = value(.blockStart, d.blockStart)
+        blockOffset = value(.blockOffset, d.blockOffset)
         deloadWeekStart = try? c.decodeIfPresent(Date.self, forKey: .deloadWeekStart)
         levelChangedAt = try? c.decodeIfPresent(Date.self, forKey: .levelChangedAt)
         rungChangedAt = value(.rungChangedAt, d.rungChangedAt)

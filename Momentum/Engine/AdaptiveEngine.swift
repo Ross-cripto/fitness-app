@@ -91,7 +91,11 @@ enum AdaptiveEngine {
                 level: p.level, intensity: p.intensity, feedback: feedback, completion: session.completion,
                 previousFeedback: previousFeedback, canChangeLevel: sinceLevelChange >= 28
             )
-            if outcome.level != p.level { p.levelChangedAt = session.date }
+            if outcome.level != p.level {
+                p.levelChangedAt = session.date
+                // Block length depends on level, so a level change starts a fresh block.
+                Periodization.restartBlock(&p, at: TrainingCalendar.weekStart(of: session.date), on: session.date)
+            }
             p.level = outcome.level
             p.intensity = outcome.intensity
             if let message = outcome.message { messages.append(message) }
@@ -99,8 +103,7 @@ enum AdaptiveEngine {
 
         // 2. Bodyweight ladders: move up when the top of the range is reached, back down after two misses.
         for log in session.logs {
-            let exercise = ExerciseLibrary.exercise(log.exerciseID)
-            guard let ladder = exercise.meta.ladder else { continue }
+            guard let exercise = ExerciseLibrary.byID[log.exerciseID], let ladder = exercise.meta.ladder else { continue }
             let rung = exercise.meta.rung
             let current = PlanGenerator.rung(ladder, profile: p)
             let range = Progression.repRange(for: exercise, goal: p.goal, level: p.level)
@@ -129,7 +132,7 @@ enum AdaptiveEngine {
 
         // 3. A long gap restarts the block.
         if let previous = previousSessionDate, TrainingCalendar.daysBetween(previous, session.date) >= 14 {
-            p.blockStart = TrainingCalendar.weekStart(of: session.date)
+            Periodization.restartBlock(&p, at: TrainingCalendar.weekStart(of: session.date), on: session.date)
             p.deloadWeekStart = nil
             messages.append(L("Welcome back. A fresh training block starts this week."))
         }
@@ -139,7 +142,7 @@ enum AdaptiveEngine {
         if Recovery.shouldDeload(profile: p, history: history, phase: phase, now: session.date) {
             let weekStart = TrainingCalendar.weekStart(of: session.date)
             p.deloadWeekStart = weekStart
-            p.blockStart = TrainingCalendar.calendar.date(byAdding: .day, value: 7, to: weekStart) ?? weekStart
+            Periodization.restartBlock(&p, at: TrainingCalendar.calendar.date(byAdding: .day, value: 7, to: weekStart) ?? weekStart, on: session.date)
             messages.append(L("You've been under a lot of strain. The rest of this week is a lighter deload, then a fresh block."))
         }
 

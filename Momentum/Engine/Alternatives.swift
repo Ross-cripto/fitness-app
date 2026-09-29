@@ -125,7 +125,8 @@ enum Alternatives {
                candidate.meta.rung > PlanGenerator.rung(ladder, profile: profile) + (reason == .tooEasy ? 1 : 0) {
                 continue
             }
-            if candidate.isLoaded && candidate.level.rank > profile.level.rank + (reason == .tooEasy ? 1 : 0) { continue }
+            // High-skill loaded lifts wait for their level, even when someone says an exercise is too easy.
+            if candidate.isLoaded && candidate.level.rank > profile.level.rank { continue }
             if !avoided.isEmpty && candidate.meta.stress.contains(where: { avoided.contains($0) }) { continue }
             if avoidImpact && candidate.meta.isImpact { continue }
 

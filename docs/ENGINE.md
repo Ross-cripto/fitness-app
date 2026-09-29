@@ -70,7 +70,7 @@ Missing answers fall back to level defaults.
   the user's excluded exercises, minimum level. Then: bodyweight-only or ladder patterns use the person's current rung
   (the rung below is used for variety on other days); loaded patterns take the best equipment. Bodyweight variations are
   never picked above the person's rung, even if the easier ones are excluded (the slot is skipped instead). Fallback
-  patterns stay in the same muscle group. **Exercises change only at a block boundary**, never week to week,
+  patterns stay in the same muscle group. **Exercises change only at a block boundary** (the same boundaries as the deload week; restarting a block after a break or a level change also moves to the next variants), never week to week,
   otherwise progression cannot be measured. Different days of the week can use different variants.
 * **Warm-up.** Three mobility drills chosen for the day's muscles (about 3 minutes) plus **ramp-up sets** for the first
   loaded compound (50% x 8, 70% x 5, and 85% x 2 when the working weight is 40 kg or more).
@@ -81,13 +81,14 @@ Missing answers fall back to level defaults.
 
   | | build muscle | get stronger | lose fat | general |
   |---|---|---|---|---|
-  | loaded compound | 8-12 beginner, 6-10 otherwise | 6-8 / 5-8 / 3-6 | 10-15 | 8-12 |
+  | loaded compound | 8-12 beginner, 6-10 otherwise | barbell lifts and pull-ups 6-8 / 5-8 / 3-6 (beginner / intermediate / advanced), other compounds 6-8 (advanced 5-8) | 10-15 | 8-12 |
   | loaded isolation | 10-15 | 8-12 | 12-20 | 10-15 |
-  | bodyweight ladder | 8-15 | 5-10 | 12-20 | 10-15 |
+  | bodyweight ladder (compound) | 8-15 | 5-10 | 10-15 | 8-12 |
+  | other bodyweight | 10-20 | 10-20 | 12-20 | 10-20 |
   | timed hold | 20-45 s (beginner 15-30 s) | | | |
 
 * **Rest** by role: heavy compound (max reps 6 or fewer) 150 s, other compound 90-120 s, isolation 60 s,
-  bodyweight 60 s, timed core 40 s, cardio 30 s. Fat loss shortens rest by about a third. Age 50+ adds 15%.
+  bodyweight compound 60 s (other bodyweight moves 45 s), timed core 40 s, cardio 30 s. Fat loss shortens rest by about a third. Age 50+ adds 15% rest and one more rep in reserve.
 * **Effort cue (reps in reserve)** by position in the block: week 1 leave 3 in the tank, week 2 leave 2, later weeks
   leave 1-2 (beginners never below 2), deload week leave 4.
 * **Starting load** = typical ratio to body weight x level factor x sex factor x age factor x 0.85 (start light),
@@ -126,10 +127,13 @@ minimum. A ladder changes rung at most once every 14 days, so a hard week cannot
   sessions**, triggers an automatic deload for the rest of that week. It never fires in the first two weeks or before
   four sessions exist, and not twice within 21 days.
 * **Deload week** is the last week of every block (beginner 6 weeks, intermediate 5, advanced 4) or triggered by
-  fatigue: sets x0.6 (minimum 2), loads x0.9, cue "leave 4 in the tank". The next block starts after it.
-* **Comeback**, measured **per exercise** (days since that lift was last logged): 10-20 days loads x0.95, 21-34 x0.85,
-  35-59 x0.75, 60+ x0.65. A gap of 14+ days since the last session also removes one set from sets of three or more and
-  restarts the block.
+  fatigue: sets x0.6 (minimum 2, and progression never adds a set), loads x0.9 of the weight last lifted (never heavier than it), cue "leave 4 in the tank". The next block starts after it.
+* **Comeback**, measured **per movement** (days since that exercise, or another variation of the same movement, was last
+  logged): 10-20 days loads x0.95, 21-34 x0.85, 35-59 x0.75, 60+ x0.65. It only applies after a real break, meaning a gap
+  of 14 days or more in training since that movement was last done. Someone who keeps training but rotates or drops an
+  exercise is not "coming back". A gap of 14+ days since the last session also removes one set from sets of three or more
+  and restarts the block (exercises rotate to the next variants). Sessions dated in the future are ignored, and logs of
+  exercises that no longer exist are skipped.
 * **Readiness today.** *Low:* one set fewer on exercises with 3+ sets, no load increases that session, +15% rest.
   *Great/normal:* as planned.
 
@@ -167,7 +171,7 @@ original again. If nothing fits, the sheet says so and offers to skip the exerci
 
 * Body areas marked as problems remove every exercise tagged as stressing them; nothing is "modified" silently.
 * "Low impact only" removes all jumping and impact exercises.
-* Deadlift, back squat and other high-skill barbell lifts require intermediate level.
+* Deadlift, back squat and other high-skill barbell lifts require intermediate level, in the plan, in swap suggestions (even for "too easy") and in remembered swap preferences.
 * The app is not medical advice. Onboarding says so and recommends seeing a professional for pain.
 
 ## 10. Languages

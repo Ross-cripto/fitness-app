@@ -115,6 +115,7 @@ final class AppStore: ObservableObject {
         updated.onboarded = true
         updated.startDate = Date()
         updated.blockStart = TrainingCalendar.weekStart(of: Date())
+        updated.blockOffset = 0
         updated.intensity = 0
         updated.deloadWeekStart = nil
         updated.levelChangedAt = nil
@@ -150,6 +151,7 @@ final class AppStore: ObservableObject {
         updated.levelChangedAt = nil
         updated.rungChangedAt = [:]
         updated.blockStart = TrainingCalendar.weekStart(of: Date())
+        updated.blockOffset = 0
         profile = updated
     }
 

@@ -211,14 +211,17 @@ final class PlanGeneratorTests: EnglishTestCase {
     func testDeloadWeekHasFewerSetsAndLighterLoads() {
         let p = T.profile(level: .intermediate, equipment: .dumbbells, weekdays: [2, 4, 6])
         let length = Periodization.blockLength(for: .intermediate)
-        let history = [T.session(on: T.week(length - 1).addingTimeInterval(-86_400), logs: [T.log("db_bench", sets: Array(repeating: (10, 20.0), count: 3), min: 6, max: 10)])]
+        let history = [T.session(on: T.week(length - 2).addingTimeInterval(-86_400), logs: [T.log("db_bench", sets: Array(repeating: (10, 20.0), count: 3), min: 6, max: 10)])]
         let normal = PlanGenerator.workout(on: T.week(length - 2), profile: p, history: history, now: T.week(length - 2))!
         let deload = PlanGenerator.workout(on: T.week(length - 1), profile: p, history: history, now: T.week(length - 1))!
         XCTAssertTrue(deload.phase!.isDeload)
         XCTAssertLessThan(deload.totalSets, normal.totalSets)
         let benchNormal = normal.exercises.first { $0.exerciseID == "db_bench" }
         let benchDeload = deload.exercises.first { $0.exerciseID == "db_bench" }
-        if let n = benchNormal?.weightKg, let d = benchDeload?.weightKg { XCTAssertLessThan(d, n) }
+        if let n = benchNormal?.weightKg, let d = benchDeload?.weightKg {
+            XCTAssertLessThan(d, n)
+            XCTAssertLessThanOrEqual(d, 20, "a deload is never heavier than what was last lifted")
+        }
         XCTAssertNotNil(deload.note)
     }
 
@@ -423,5 +426,123 @@ final class AlternativesTests: EnglishTestCase {
         p.applySwap(original: bench, replacement: press, scope: .neverShowOriginal, protecting: [.shoulders])
         XCTAssertEqual(p.excludedExercises, ["bench_press"])       // no duplicates
         XCTAssertEqual(p.limitations, [.shoulders])
+    }
+}
+
+/// Regressions found by fuzzing the engine.
+final class EngineRegressionTests: EnglishTestCase {
+    private func lifts(_ id: String, kg: Double, reps: Int = 12, min: Int = 10, max: Int = 15, on date: Date) -> WorkoutSession {
+        T.session(on: date, logs: [T.log(id, sets: Array(repeating: (reps, kg), count: 3), min: min, max: max)])
+    }
+
+    func testRegularTrainersAreNotTreatedAsReturningFromABreak() {
+        let p = T.profile(level: .intermediate, equipment: .dumbbells, weekdays: [2, 4, 6])
+        // Curls 40 days ago, but they have trained every few days since.
+        var history = [lifts("db_curl", kg: 10, on: T.day(-40))]
+        for offset in stride(from: -36, through: -3, by: 3) { history.append(lifts("db_bench", kg: 20, reps: 8, min: 6, max: 10, on: T.day(offset))) }
+        let curl = PlanGenerator.replan(ExerciseLibrary.exercise("db_curl"), profile: p, history: history, sets: 3, on: T.day(0), now: T.day(0))
+        XCTAssertFalse(curl.reason?.contains("Comeback") == true, curl.reason ?? "")
+    }
+
+    func testARealBreakStillEasesEveryLiftBack() {
+        let p = T.profile(level: .intermediate, equipment: .dumbbells, weekdays: [2, 4, 6])
+        let history = [lifts("db_curl", kg: 10, on: T.day(-40)), lifts("db_bench", kg: 20, reps: 8, min: 6, max: 10, on: T.day(-30)),
+                       lifts("db_bench", kg: 20, reps: 8, min: 6, max: 10, on: T.day(-2))]
+        let curl = PlanGenerator.replan(ExerciseLibrary.exercise("db_curl"), profile: p, history: history, sets: 3, on: T.day(0), now: T.day(0))
+        XCTAssertTrue(curl.reason?.contains("Comeback") == true, curl.reason ?? "")
+        XCTAssertLessThan(curl.weightKg ?? 99, 10)
+    }
+
+    func testDeloadNeverExceedsTheLastLiftedWeight() {
+        var p = T.profile(level: .intermediate, equipment: .fullGym, weekdays: [2, 4, 6])
+        p.deloadWeekStart = T.monday
+        let history = [lifts("barbell_curl", kg: 15, on: T.day(-3))]
+        let curl = PlanGenerator.replan(ExerciseLibrary.exercise("barbell_curl"), profile: p, history: history, sets: 3, on: T.monday, now: T.monday)
+        XCTAssertLessThanOrEqual(curl.weightKg ?? 99, 15)
+    }
+
+    func testProgressionFromALightBarIsNotInflatedToTheMinimum() {
+        let p = T.profile(level: .intermediate, equipment: .fullGym)
+        let log = T.log("barbell_curl", sets: Array(repeating: (15, 15.0), count: 3), min: 10, max: 15)
+        let decision = Progression.decide(exercise: ExerciseLibrary.exercise("barbell_curl"), profile: p,
+                                          history: [T.session(on: T.day(-3), logs: [log])], range: RepRange(min: 10, max: 15))
+        XCTAssertEqual(decision.weightKg, 17.5)
+    }
+
+    func testDeloadNeverAddsSets() {
+        var p = T.profile(level: .intermediate, equipment: .bodyweight, weekdays: [2, 4, 6], minutes: 60)
+        p.deloadWeekStart = T.monday
+        let deload = PlanGenerator.workout(on: T.monday, profile: p, history: [], now: T.monday)!
+        XCTAssertTrue(deload.exercises.allSatisfy { $0.sets <= 3 })
+        let normal = PlanGenerator.workout(on: T.week(1), profile: T.profile(level: .intermediate, equipment: .bodyweight, weekdays: [2, 4, 6], minutes: 60), history: [], now: T.week(1))!
+        XCTAssertLessThan(deload.totalSets, normal.totalSets)
+    }
+
+    func testUnknownExerciseIDsInHistoryAreIgnored() {
+        let p = T.profile(level: .beginner, equipment: .bodyweight)
+        let stray = T.session(on: T.day(-2), logs: [ExerciseLog(exerciseID: "removed_in_v2", targetSets: 3, target: 30,
+                                                                 sets: Array(repeating: SetLog(reps: 30, weightKg: 0, seconds: 0), count: 3))])
+        let outcome = AdaptiveEngine.apply(session: stray, to: p, history: [stray], previousSessionDate: nil)
+        XCTAssertEqual(outcome.profile.rungs, p.rungs)
+        XCTAssertTrue(outcome.messages.isEmpty)
+    }
+
+    func testFutureSessionsDoNotCountAsTheLastWorkout() {
+        let p = T.profile(level: .intermediate, equipment: .dumbbells, weekdays: [2, 4, 6])
+        let past = lifts("db_bench", kg: 20, reps: 8, min: 6, max: 10, on: T.day(-60))
+        let future = lifts("db_bench", kg: 20, reps: 8, min: 6, max: 10, on: T.day(3))
+        let a = PlanGenerator.workout(on: T.monday, profile: p, history: [past], now: T.monday)!
+        let b = PlanGenerator.workout(on: T.monday, profile: p, history: [past, future], now: T.monday)!
+        XCTAssertEqual(a.note, b.note)
+        XCTAssertEqual(a.exercises.map(\.weightKg), b.exercises.map(\.weightKg))
+    }
+
+    func testWorkoutIDsAreUniquePerCalendarDay() {
+        let p = T.profile(weekdays: [1, 2, 3, 4, 5, 6])
+        var ids = Set<String>()
+        for offset in 0..<60 {
+            let day = T.day(offset)
+            if let workout = PlanGenerator.workout(on: day, profile: p, history: [], now: day) {
+                XCTAssertTrue(ids.insert(workout.id).inserted, workout.id)
+            }
+        }
+    }
+
+    func testBeginnersNeverGetHighSkillLiftsFromSwapsOrPreferences() {
+        var p = T.profile(level: .beginner, equipment: .fullGym, weekdays: [2, 4, 6])
+        let workout = PlanGenerator.workout(on: T.monday, profile: p, history: [], now: T.monday)!
+        for planned in workout.exercises {
+            for suggestion in Alternatives.suggest(for: planned, in: workout, reason: .tooEasy, profile: p) {
+                XCTAssertFalse(suggestion.exercise.isLoaded && suggestion.exercise.level.rank > p.level.rank, suggestion.exercise.id)
+            }
+        }
+        p.swapPreferences["leg_press"] = "back_squat"
+        for offset in 0..<7 {
+            let day = T.day(offset)
+            for planned in PlanGenerator.workout(on: day, profile: p, history: [], now: day)?.exercises ?? [] {
+                XCTAssertNotEqual(planned.exerciseID, "back_squat")
+            }
+        }
+    }
+
+    func testRestrictedQuickWorkoutsAreNotEmptyStubs() {
+        var p = T.profile(equipment: .bodyweight, limitations: [.knees, .wrists, .shoulders], lowImpact: true)
+        p.excludedExercises = ["shadow_boxing", "wall_pushup", "knee_pushup", "bw_squat", "wall_sit", "plank", "dead_bug"]
+        let quick = PlanGenerator.quick(.short, profile: p, history: [], now: T.monday)
+        XCTAssertGreaterThanOrEqual(quick.exercises.count, 3)
+    }
+
+    func testBlocksAndExerciseRotationStayAligned() {
+        var p = T.profile(level: .intermediate, equipment: .dumbbells, weekdays: [2, 4, 6])
+        p.startDate = T.monday
+        p.blockStart = T.week(2)
+        let length = Periodization.blockLength(for: .intermediate)
+        // The block counter only changes when the block (and its deload schedule) restarts.
+        XCTAssertEqual(Periodization.blockNumber(on: T.week(2), profile: p), 0)
+        XCTAssertEqual(Periodization.blockNumber(on: T.week(2 + length - 1), profile: p), 0)
+        XCTAssertEqual(Periodization.blockNumber(on: T.week(2 + length), profile: p), 1)
+        var restarted = p
+        Periodization.restartBlock(&restarted, at: T.week(9), on: T.week(9))
+        XCTAssertEqual(Periodization.blockNumber(on: T.week(9), profile: restarted), 2)  // one past the old block 1
     }
 }

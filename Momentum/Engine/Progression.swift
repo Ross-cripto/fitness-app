@@ -123,10 +123,13 @@ enum Progression {
         return exercise.equipment == .fullGym ? 5 : 1
     }
 
-    static func roundLoad(_ load: Double, for exercise: Exercise, down: Bool = false) -> Double {
+    /// Rounds to the equipment's load step. `clampToMinimum` lifts results to the smallest sensible load (an empty
+    /// barbell); it is for choosing a *starting* load only. Loads derived from what the person actually lifted must
+    /// not be pushed up by it (a deload above the last weight, a "+5 kg" jump instead of +2.5).
+    static func roundLoad(_ load: Double, for exercise: Exercise, down: Bool = false, clampToMinimum: Bool = true) -> Double {
         let s = step(for: exercise, at: load)
         let steps = down ? (load / s).rounded(.down) : (load / s).rounded()
-        return max(minimumLoad(for: exercise), steps * s)
+        return max(clampToMinimum ? minimumLoad(for: exercise) : s, steps * s)
     }
 
     static func dumbbellCap(for exercise: Exercise, profile: UserProfile) -> Double? {
@@ -177,6 +180,32 @@ enum Progression {
             .filter { $0.logs.contains(where: { $0.exerciseID == exerciseID && !$0.sets.isEmpty }) }
             .map { $0.date }
             .max()
+    }
+
+    /// Date of the most recent session that trained this exercise *or another variation of the same movement*.
+    /// Exercises rotate between blocks, so time off is judged by the movement, not by one specific variant.
+    static func lastDate(forMovementOf exercise: Exercise, in history: [WorkoutSession]) -> Date? {
+        history
+            .filter { session in
+                session.logs.contains { log in
+                    guard !log.sets.isEmpty, let logged = ExerciseLibrary.byID[log.exerciseID] else { return false }
+                    return logged.id == exercise.id || logged.pattern == exercise.pattern
+                }
+            }
+            .map { $0.date }
+            .max()
+    }
+
+    /// True when there was no gap of two weeks or more between `date` and `now` (counting the sessions in between).
+    /// Someone who kept training, but dropped or rotated an exercise, is not coming back from a break.
+    static func trainedContinuously(since date: Date, in history: [WorkoutSession], now: Date) -> Bool {
+        let dates = history.map { $0.date }.filter { $0 > date && $0 <= now }.sorted() + [now]
+        var previous = date
+        for next in dates {
+            if TrainingCalendar.daysBetween(previous, next) >= 14 { return false }
+            previous = next
+        }
+        return true
     }
 
     private static func values(_ log: ExerciseLog, timed: Bool) -> [Int] {
@@ -304,7 +333,7 @@ enum Progression {
                 }
                 next = cap
             }
-            next = roundLoad(next, for: exercise)
+            next = roundLoad(next, for: exercise, clampToMinimum: false)
             if let cap = cap { next = min(next, cap) }
             let amount = units.formatWeight(next - load)
             let sentence = hitTop
@@ -331,7 +360,7 @@ enum Progression {
                 previousFailed = prevLoad >= load * 0.97 && failed(prev, exercise: exercise, range: range)
             }
             if severe || previousFailed {
-                let lighter = roundLoad(load * 0.9, for: exercise, down: true)
+                let lighter = roundLoad(load * 0.9, for: exercise, down: true, clampToMinimum: false)
                 let why = (severe && !previousFailed)
                     ? L("That was much heavier than planned: dropping about 10%.")
                     : L("Two tough sessions in a row: dropping about 10% to rebuild.")

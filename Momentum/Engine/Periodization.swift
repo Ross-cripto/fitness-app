@@ -50,7 +50,14 @@ enum Periodization {
     /// Which block number the date falls in (drives exercise variety: variants change only at block boundaries).
     static func blockNumber(on date: Date, profile: UserProfile) -> Int {
         let length = blockLength(for: profile.level)
-        return TrainingCalendar.weeksBetween(profile.startDate, and: date) / length
+        return profile.blockOffset + max(0, TrainingCalendar.weeksBetween(profile.blockStart, and: date)) / length
+    }
+
+    /// Starts a new block at `start`. The block counter keeps moving so exercises rotate instead of repeating the
+    /// first block's picks, and the deload schedule stays aligned with the exercise changes.
+    static func restartBlock(_ profile: inout UserProfile, at start: Date, on date: Date) {
+        profile.blockOffset = blockNumber(on: date, profile: profile) + 1
+        profile.blockStart = start
     }
 }
 
@@ -60,7 +67,7 @@ enum Recovery {
     /// A log where most working sets missed the planned minimum.
     static func logFailed(_ log: ExerciseLog) -> Bool {
         guard let minimum = log.repMin, !log.sets.isEmpty else { return false }
-        let exercise = ExerciseLibrary.exercise(log.exerciseID)
+        guard let exercise = ExerciseLibrary.byID[log.exerciseID] else { return false }
         var sets = log.sets
         if exercise.isLoaded {
             let load = sets.map { $0.weightKg }.max() ?? 0
@@ -74,7 +81,7 @@ enum Recovery {
     /// over the last three sessions in the last two weeks.
     static func fatigueScore(history: [WorkoutSession], now: Date) -> (score: Int, badSessions: Int, sessions: Int) {
         let recent = history
-            .filter { TrainingCalendar.daysBetween($0.date, now) <= 14 }
+            .filter { $0.date <= now && TrainingCalendar.daysBetween($0.date, now) <= 14 }
             .sorted { $0.date > $1.date }
             .prefix(3)
         var total = 0
@@ -154,7 +161,7 @@ enum VolumePlanner {
         var result: [MuscleGroup: Int] = [:]
         for session in sessions where TrainingCalendar.sameDay(TrainingCalendar.weekStart(of: session.date), start) {
             for log in session.logs {
-                let muscle = ExerciseLibrary.exercise(log.exerciseID).muscle
+                guard let muscle = ExerciseLibrary.byID[log.exerciseID]?.muscle else { continue }
                 result[muscle, default: 0] += log.sets.count
             }
         }

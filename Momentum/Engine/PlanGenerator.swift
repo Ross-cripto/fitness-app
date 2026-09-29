@@ -207,6 +207,8 @@ enum PlanGenerator {
         readiness: Readiness,
         usePhase: Bool
     ) -> Context {
+        // A session dated in the future (wrong clock, bad import) is not "the last workout".
+        let history = history.filter { $0.date <= now }
         let last = history.map { $0.date }.max()
         let daysOff = last.map { TrainingCalendar.daysBetween($0, now) } ?? 0
         let soon = TrainingCalendar.daysBetween(now, date) <= 7
@@ -251,7 +253,8 @@ enum PlanGenerator {
             note = L("Easy day: one set fewer and no weight jumps.")
         }
 
-        let stamp = Int(calendar.startOfDay(for: date).timeIntervalSince1970 / 86_400)
+        let day = calendar.dateComponents([.year, .month, .day], from: date)
+        let stamp = String(format: "%04d%02d%02d", day.year ?? 0, day.month ?? 0, day.day ?? 0)
         return Workout(
             id: "plan-\(stamp)",
             title: focus.title,
@@ -400,23 +403,30 @@ enum PlanGenerator {
             exercise: exercise, profile: profile, history: ctx.history, range: range, holdLoad: ctx.readiness == .low
         )
         var sets = initialSets
-        if decision.addSet { sets = min(5, sets + 1) }
+        if decision.addSet && ctx.phase?.isDeload != true { sets = min(5, sets + 1) }
         var reason = decision.reason
-        let lastLogDate = Progression.lastDate(for: exercise.id, in: ctx.history)
-        let hasHistory = lastLogDate != nil
-        // Time off is measured per exercise, so every lift eases back in, not just the first session back.
-        let daysSince = lastLogDate.map { TrainingCalendar.daysBetween($0, ctx.now) } ?? 0
-        let exerciseComeback = hasHistory ? Comeback.factor(daysSinceLast: daysSince) : 1.0
+        let hasHistory = Progression.lastDate(for: exercise.id, in: ctx.history) != nil
+        // After a break (a gap of two weeks or more) every movement eases back in, not just the first session back.
+        // Time off is judged per movement (this exercise or a variation of it), and rotating or dropping an exercise
+        // while still training regularly is not a break.
+        let lastMovementDate = Progression.lastDate(forMovementOf: exercise, in: ctx.history)
+        let daysSince = lastMovementDate.map { TrainingCalendar.daysBetween($0, ctx.now) } ?? 0
+        let onBreak = lastMovementDate.map { !Progression.trainedContinuously(since: $0, in: ctx.history, now: ctx.now) } ?? false
+        let exerciseComeback = (hasHistory && onBreak) ? Comeback.factor(daysSinceLast: daysSince) : 1.0
 
         if var weight = decision.weightKg, hasHistory {
             if exerciseComeback < 1 {
-                weight = min(weight, Progression.roundLoad(weight * exerciseComeback, for: exercise, down: true))
+                weight = min(weight, Progression.roundLoad(weight * exerciseComeback, for: exercise, down: true, clampToMinimum: false))
                 decision.target = decision.repMin
                 let pct = Comeback.percentLighter(daysSinceLast: daysSince)
                 reason = L("Comeback: about {0}% lighter after {1} days off.", pct, daysSince)
             }
             if ctx.phase?.isDeload == true {
-                weight = Progression.roundLoad(weight * Progression.deloadLoadFactor, for: exercise, down: true)
+                // Deload from what was actually lifted, never from a load that progression just raised.
+                let lifted = Progression.recentLogs(for: exercise.id, in: ctx.history, limit: 1).first?
+                    .sets.map { $0.weightKg }.max() ?? 0
+                let base = lifted > 0 ? min(weight, lifted) : weight
+                weight = min(base, Progression.roundLoad(base * Progression.deloadLoadFactor, for: exercise, down: true, clampToMinimum: false))
                 reason = L("Deload week: a lighter weight to recover.")
             }
             if let cap = Progression.dumbbellCap(for: exercise, profile: profile), weight > cap { weight = cap }
@@ -638,33 +648,19 @@ enum PlanGenerator {
 
         // Honour "I prefer this instead" from earlier swaps.
         if let replacementID = profile.swapPreferences[chosen.id],
-           let replacement = allowed.first(where: { $0.id == replacementID }) {
+           let replacement = allowed.first(where: { $0.id == replacementID }),
+           preferenceFits(replacement, profile: profile) {
             chosen = replacement
         }
         return chosen
     }
 
-    /// Exercises the person could swap in for `planned`.
-    static func alternatives(
-        for planned: PlannedExercise,
-        in workout: Workout,
-        profile: UserProfile
-    ) -> [Exercise] {
-        let current = planned.exercise
-        let used = Set(workout.exercises.map { $0.exerciseID })
-        let currentRung = current.meta.ladder.map { rung($0, profile: profile) }
-        return ExerciseLibrary.all
-            .filter { candidate in
-                guard candidate.pattern == current.pattern,
-                      !used.contains(candidate.id),
-                      isAllowed(candidate, profile: profile) else { return false }
-                if candidate.isLoaded { return candidate.level.rank <= profile.level.rank }
-                if let ladder = candidate.meta.ladder, let limit = currentRung, ladder == current.meta.ladder {
-                    return candidate.meta.rung <= limit
-                }
-                return true
-            }
-            .sorted { $0.name < $1.name }
+    /// A remembered swap must still respect the person's level and rung (e.g. a beginner never gets a back squat
+    /// from an old preference).
+    private static func preferenceFits(_ exercise: Exercise, profile: UserProfile) -> Bool {
+        if exercise.isLoaded && exercise.level.rank > profile.level.rank { return false }
+        if let ladder = exercise.meta.ladder, !exercise.isLoaded, exercise.meta.rung > rung(ladder, profile: profile) { return false }
+        return true
     }
 
     // MARK: Quick workouts
@@ -705,6 +701,17 @@ enum PlanGenerator {
             if let rest = spec.rest { item.restSeconds = rest }
             item.repsInReserve = nil
             planned.append(item)
+        }
+        // Very restricted people still get a few exercises, as in regular sessions.
+        if planned.count < 3 {
+            for pattern in [Pattern.coreStability, .coreFlexion, .cardio, .squat, .hinge, .mobility] where planned.count < 3 {
+                guard let exercise = pick(pattern, occurrence: 0, profile: adjusted, blockNumber: blockNo, used: used) else { continue }
+                used.insert(exercise.id)
+                var item = prescribe(exercise, sets: spec.sets, ctx: ctx)
+                if let rest = spec.rest { item.restSeconds = rest }
+                item.repsInReserve = nil
+                planned.append(item)
+            }
         }
         fit(&planned, toSeconds: spec.budget * 60)
         return Workout(id: spec.id, title: spec.title, subtitle: spec.subtitle, theme: spec.theme, exercises: planned)
