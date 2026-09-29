@@ -40,6 +40,8 @@ Status: ✅ done · 🚧 in progress · ⬜ not started · 💬 needs a decision
 
 | | Item | Why |
 |---|---|---|
+| ⬜ | Property-based fuzz tests in CI (random profiles, histories, dates; invariants: loads within caps, no protected-area violations, deterministic, deload never above the last lift) | A one-off fuzz run found eight real bugs; keeping it prevents regressions. The harness's oracle needs reconciling with `ENGINE.md` first (future-dated logs, per-movement comeback) |
+| ⬜ | Review `ENGINE.md` against sports-science sources, with citations | The rules should be defensible, not just plausible |
 | ⬜ | Exercise library as data files (JSON) instead of Swift | Lets non-programmers add exercises and translations by pull request |
 | ⬜ | More exercises (target ~150): kettlebell, bands, TRX, cardio machines | Equipment beyond bodyweight/dumbbells/gym |
 | 🚧 | Equipment profiles: pull-up bar ✅; bands, kettlebells, bench, "hotel gym" ⬜ | Precise plans for real home setups |
