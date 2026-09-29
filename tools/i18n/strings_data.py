@@ -77,3 +77,34 @@ PT.update({
     "No workouts yet. Finish one and it will show up here.":
         "Ainda não há treinos. Conclua um e ele aparecerá aqui.",
 })
+
+# Reminders
+ES.update({
+    "Time to train": "Hora de entrenar",
+    "Time to train, {0}": "Hora de entrenar, {0}",
+    "Today: {0}. {1} min.": "Hoy: {0}. {1} min.",
+})
+PT.update({
+    "Time to train": "Hora de treinar",
+    "Time to train, {0}": "Hora de treinar, {0}",
+    "Today: {0}. {1} min.": "Hoje: {0}. {1} min.",
+})
+
+ES.update({
+    "Remind me on training days": "Recordarme en los días de entrenamiento",
+    "Time": "Hora",
+    "Notifications are turned off for Momentum. You can turn them on in the iPhone Settings app.":
+        "Las notificaciones de Momentum están desactivadas. Puedes activarlas en la app Ajustes del iPhone.",
+    "Reminders": "Recordatorios",
+    "A quiet notification on the days you plan to train, with that day's workout. It is scheduled on this phone; nothing is sent anywhere.":
+        "Una notificación discreta los días en que planeas entrenar, con el entrenamiento del día. Se programa en este teléfono; no se envía nada a ningún lado.",
+})
+PT.update({
+    "Remind me on training days": "Me lembrar nos dias de treino",
+    "Time": "Horário",
+    "Notifications are turned off for Momentum. You can turn them on in the iPhone Settings app.":
+        "As notificações do Momentum estão desativadas. Você pode ativá-las no app Ajustes do iPhone.",
+    "Reminders": "Lembretes",
+    "A quiet notification on the days you plan to train, with that day's workout. It is scheduled on this phone; nothing is sent anywhere.":
+        "Uma notificação discreta nos dias em que você planeja treinar, com o treino do dia. Ela é agendada neste celular; nada é enviado para lugar nenhum.",
+})

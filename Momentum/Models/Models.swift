@@ -261,6 +261,8 @@ struct UserProfile: Codable, Equatable {
     var onboarded: Bool = false
     /// Whether the user connected Apple Health (write workouts and weight, read steps).
     var healthSync: Bool = false
+    /// Training-day reminder time as minutes after midnight. nil means reminders are off.
+    var reminderMinutes: Int?
     /// The language chosen in the app. nil follows the phone's language.
     var language: AppLanguage?
 
@@ -318,6 +320,7 @@ struct UserProfile: Codable, Equatable {
         onboarded = value(.onboarded, d.onboarded)
         healthSync = value(.healthSync, d.healthSync)
         language = try? c.decodeIfPresent(AppLanguage.self, forKey: .language)
+        reminderMinutes = try? c.decodeIfPresent(Int.self, forKey: .reminderMinutes)
         history = value(.history, d.history)
         frequency = value(.frequency, d.frequency)
         check = value(.check, d.check)

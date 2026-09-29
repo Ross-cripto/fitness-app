@@ -14,6 +14,7 @@ struct SettingsView: View {
     @State private var showImporter = false
     @State private var pendingRestore: (data: Data, workouts: Int, weights: Int)?
     @State private var backupMessage: String?
+    @State private var notificationsBlocked = false
 
     private static let weekdayOrder = [2, 3, 4, 5, 6, 7, 1]
 
@@ -78,6 +79,23 @@ struct SettingsView: View {
                     Text(Lp(activeWeekdays.count,
                             one: "{0} day a week. Changing days re-plans upcoming workouts.",
                             other: "{0} days a week. Changing days re-plans upcoming workouts."))
+                }
+
+                Section {
+                    Toggle(L("Remind me on training days"), isOn: reminderBinding)
+                        .tint(Theme.pink)
+                    if let minutes = store.profile.reminderMinutes {
+                        DatePicker(L("Time"), selection: reminderTimeBinding(minutes), displayedComponents: .hourAndMinute)
+                    }
+                    if notificationsBlocked {
+                        Text(L("Notifications are turned off for Momentum. You can turn them on in the iPhone Settings app."))
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                    }
+                } header: {
+                    Text(L("Reminders"))
+                } footer: {
+                    Text(L("A quiet notification on the days you plan to train, with that day's workout. It is scheduled on this phone; nothing is sent anywhere."))
                 }
 
                 Section {
@@ -221,6 +239,40 @@ struct SettingsView: View {
                 Button(L("Cancel"), role: .cancel) {}
             }
         }
+    }
+
+    // MARK: Reminders
+
+    private var reminderBinding: Binding<Bool> {
+        Binding(
+            get: { store.profile.reminderMinutes != nil },
+            set: { enabled in
+                if enabled {
+                    Task { @MainActor in
+                        let granted = await ReminderScheduler.requestAccess()
+                        notificationsBlocked = !granted
+                        store.profile.reminderMinutes = granted ? (store.profile.reminderMinutes ?? 18 * 60) : nil
+                    }
+                } else {
+                    notificationsBlocked = false
+                    store.profile.reminderMinutes = nil
+                }
+            }
+        )
+    }
+
+    private func reminderTimeBinding(_ minutes: Int) -> Binding<Date> {
+        Binding(
+            get: {
+                let calendar = Calendar.current
+                let start = calendar.startOfDay(for: Date())
+                return calendar.date(byAdding: .minute, value: minutes, to: start) ?? start
+            },
+            set: { date in
+                let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
+                store.profile.reminderMinutes = (parts.hour ?? 18) * 60 + (parts.minute ?? 0)
+            }
+        )
     }
 
     // MARK: Backup
