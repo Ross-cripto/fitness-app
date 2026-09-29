@@ -184,7 +184,7 @@ PT = {
     "Beginner": "Iniciante",
     "Below the minimum last time: repeat and build back up.": "Na última vez ficou abaixo do mínimo: repita e volte a subir aos poucos.",
     "Bodyweight version, no weight to manage.": "Versão com peso do corpo, sem carga para controlar.",
-    "Build muscle": "Ganhar massa muscular",
+    "Build muscle": "Ganhar massa",
     "Cardio": "Cardio",
     "Chest": "Peito",
     "Chest, back, shoulders, arms": "Peito, costas, ombros e braços",

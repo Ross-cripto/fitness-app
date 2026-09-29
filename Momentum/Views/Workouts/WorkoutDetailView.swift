@@ -96,6 +96,13 @@ struct WorkoutDetailView: View {
                 .padding(.horizontal, 20)
             }
 
+            // Fades the list out behind the button so text does not run through it.
+            LinearGradient(colors: [Color.black.opacity(0), Color.black.opacity(0.92)], startPoint: .top, endPoint: .bottom)
+                .frame(height: 140)
+                .frame(maxHeight: .infinity, alignment: .bottom)
+                .allowsHitTesting(false)
+                .ignoresSafeArea(edges: .bottom)
+
             Button(L("Start Workout")) { showPlayer = true }
                 .buttonStyle(PillButtonStyle())
                 .disabled(current.exercises.isEmpty)

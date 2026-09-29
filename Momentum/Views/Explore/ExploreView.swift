@@ -38,10 +38,10 @@ struct ExploreView: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(exercise.name)
                                         .font(.system(size: 16, weight: .semibold))
-                                        .foregroundStyle(.primary)
+                                        .foregroundStyle(Color.primary)
                                     Text(L("{0} · {1} · {2}", exercise.muscle.title, exercise.equipment.title, exercise.level.title))
                                         .font(.system(size: 12))
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(Color.secondary)
                                 }
                                 Spacer()
                                 Image(systemName: "chevron.right")
@@ -120,10 +120,10 @@ struct ExerciseDetailView: View {
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(L("Watch a video on YouTube"))
                                     .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(.primary)
+                                    .foregroundStyle(Color.primary)
                                 Text(L("Proper-form tutorials for {0}", exercise.name))
                                     .font(.system(size: 12))
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(Color.secondary)
                             }
                             Spacer()
                             Image(systemName: "arrow.up.right")
