@@ -34,12 +34,12 @@ struct WorkoutDetailView: View {
                         StatPill(
                             symbol: "flame.fill",
                             value: "\(current.calories(weightKg: store.profile.weightKg))",
-                            unit: "cal", tint: Theme.pink, large: false, onDark: true
+                            unit: L("cal"), tint: Theme.pink, large: false, onDark: true
                         )
                         StatPill(
                             symbol: "timer",
                             value: "\(current.minutes)",
-                            unit: "min", tint: Theme.green, large: false, onDark: true
+                            unit: L("min"), tint: Theme.green, large: false, onDark: true
                         )
                     }
 
@@ -75,14 +75,14 @@ struct WorkoutDetailView: View {
                     if canSetReadiness { readinessPicker }
 
                     if !current.warmup.isEmpty {
-                        sectionLabel("Warm-up · \(current.warmup.count) drills")
+                        sectionLabel(Lp(current.warmup.count, one: "Warm-up · {0} drill", other: "Warm-up · {0} drills"))
                         Text(current.warmup.map { $0.exercise.name }.joined(separator: " · "))
                             .font(.system(size: 13))
                             .foregroundStyle(Color.white.opacity(0.6))
                             .padding(.bottom, 14)
                     }
 
-                    sectionLabel("Workout")
+                    sectionLabel(L("Workout"))
                     VStack(spacing: 16) {
                         ForEach(current.exercises) { planned in
                             row(planned)
@@ -94,7 +94,7 @@ struct WorkoutDetailView: View {
                 .padding(.horizontal, 20)
             }
 
-            Button("Start Workout") { showPlayer = true }
+            Button(L("Start Workout")) { showPlayer = true }
                 .buttonStyle(PillButtonStyle())
                 .padding(.bottom, 24)
         }
@@ -135,7 +135,7 @@ struct WorkoutDetailView: View {
 
     private var readinessPicker: some View {
         VStack(alignment: .leading, spacing: 8) {
-            sectionLabel("How do you feel today?")
+            sectionLabel(L("How do you feel today?"))
             HStack(spacing: 8) {
                 ForEach(Readiness.allCases) { option in
                     let selected = store.todaysReadiness == option
@@ -198,7 +198,7 @@ struct WorkoutDetailView: View {
                             Text(detailLine(planned))
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(Color.white.opacity(0.6))
-                            Text("\(minutes) min · \(calories) cal")
+                            Text(L("{0} min · {1} cal", minutes, calories))
                                 .font(.system(size: 11))
                                 .foregroundStyle(Color.white.opacity(0.4))
                         }
@@ -216,7 +216,7 @@ struct WorkoutDetailView: View {
                         .frame(width: 40, height: 40)
                         .contentShape(Rectangle())
                 }
-                .accessibilityLabel("Can't do \(exercise.name)? Swap it")
+                .accessibilityLabel(L("Can't do {0}? Swap it", exercise.name))
             }
             if let reason = planned.reason {
                 Text(reason)
@@ -247,7 +247,7 @@ struct WorkoutDetailView: View {
             on: current.date ?? Date(),
             readiness: store.todaysReadiness
         )
-        let prefix = "Swapped in for \(planned.exercise.name)."
+        let prefix = L("Swapped in for {0}.", planned.exercise.name)
         replacement.reason = replacement.reason.map { "\(prefix) \($0)" } ?? prefix
         current.exercises[index] = replacement
         store.rememberSwap(original: planned.exercise, replacement: exercise, scope: scope, protecting: areas)

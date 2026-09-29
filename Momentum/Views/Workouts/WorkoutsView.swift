@@ -33,7 +33,7 @@ struct WorkoutsView: View {
     private var header: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("\(store.streak)")
+                Text(verbatim: "\(store.streak)")
                     .font(.system(size: 64, weight: .heavy, design: .rounded))
                     .overlay(alignment: .topTrailing) {
                         Circle()
@@ -41,14 +41,14 @@ struct WorkoutsView: View {
                             .frame(width: 11, height: 11)
                             .offset(x: 14, y: 6)
                     }
-                Text("workout streak")
+                Text(L("workout streak"))
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 0) {
-                Text(today.formatted(.dateTime.month(.wide).day()) + ",")
-                Text(today.formatted(.dateTime.year()))
+                Text(Loc.date(today, "MMMMd") + ",")
+                Text(Loc.date(today, "y"))
             }
             .font(.system(size: 20, weight: .regular))
             .foregroundStyle(.secondary)
@@ -59,21 +59,30 @@ struct WorkoutsView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private var greetingName: String {
-        let name = store.profile.name.trimmingCharacters(in: .whitespaces)
-        return name.isEmpty ? "" : ", \(name)"
+    private var trimmedName: String {
+        store.profile.name.trimmingCharacters(in: .whitespaces)
     }
 
     private var summary: some View {
         Group {
             if !doneToday.isEmpty {
-                Text("Nice work today\(greetingName). Add a quick session below if you still have energy.")
+                if trimmedName.isEmpty {
+                    Text(L("Nice work today. Add a quick session below if you still have energy."))
+                } else {
+                    Text(L("Nice work today, {0}. Add a quick session below if you still have energy.", trimmedName))
+                }
             } else if planned != nil {
-                Text("Today's workout is scheduled. You have **1 workout** session.")
+                LText("Today's workout is scheduled. You have **1 workout** session.")
             } else if let next = store.nextWorkout() {
-                Text("Rest day\(greetingName). Next up: **\(next.workout.title)** on \(next.date.formatted(.dateTime.weekday(.wide))).")
+                if trimmedName.isEmpty {
+                    LText("Rest day. Next up: **{0}** on {1}.", next.workout.title, Loc.date(next.date, "EEEE"))
+                } else {
+                    LText("Rest day, {0}. Next up: **{1}** on {2}.", trimmedName, next.workout.title, Loc.date(next.date, "EEEE"))
+                }
+            } else if trimmedName.isEmpty {
+                Text(L("Rest day. Recovery is part of the plan."))
             } else {
-                Text("Rest day\(greetingName). Recovery is part of the plan.")
+                Text(L("Rest day, {0}. Recovery is part of the plan.", trimmedName))
             }
         }
         .font(.system(size: 17, weight: .medium))
@@ -90,12 +99,12 @@ struct WorkoutsView: View {
         let sets = logged.sessions > 0 ? logged.sets : (planned?.totalSets ?? 0)
 
         return HStack(spacing: 22) {
-            StatPill(symbol: "flame.fill", value: "\(calories)", unit: "cal", tint: Theme.pink)
-            StatPill(symbol: "timer", value: "\(minutes)", unit: "min", tint: Theme.green)
+            StatPill(symbol: "flame.fill", value: "\(calories)", unit: L("cal"), tint: Theme.pink)
+            StatPill(symbol: "timer", value: "\(minutes)", unit: L("min"), tint: Theme.green)
             if store.profile.healthSync && health.steps > 0 {
-                StatPill(symbol: "figure.walk", value: "\(health.steps)", unit: "steps", tint: Theme.amber)
+                StatPill(symbol: "figure.walk", value: "\(health.steps)", unit: L("steps"), tint: Theme.amber)
             } else {
-                StatPill(symbol: "checkmark.circle.fill", value: "\(sets)", unit: "sets", tint: Theme.amber)
+                StatPill(symbol: "checkmark.circle.fill", value: "\(sets)", unit: L("sets"), tint: Theme.amber)
             }
         }
         .padding(.horizontal, 20)
@@ -110,7 +119,7 @@ struct WorkoutsView: View {
             if let workout = planned {
                 NavigationLink(value: workout) {
                     WorkoutCard(
-                        label: doneToday.isEmpty ? "Today's Workout" : "Today's Workout · Done",
+                        label: doneToday.isEmpty ? L("Today's Workout") : L("Today's Workout · Done"),
                         workout: workout,
                         weightKg: weight
                     )
@@ -118,7 +127,7 @@ struct WorkoutsView: View {
             } else if let next = store.nextWorkout() {
                 NavigationLink(value: next.workout) {
                     WorkoutCard(
-                        label: "Up next · \(next.date.formatted(.dateTime.weekday(.wide)))",
+                        label: L("Up next · {0}", Loc.date(next.date, "EEEE")),
                         workout: next.workout,
                         weightKg: weight
                     )
@@ -128,7 +137,7 @@ struct WorkoutsView: View {
             ForEach(QuickKind.allCases) { kind in
                 let workout = store.quick(kind)
                 NavigationLink(value: workout) {
-                    WorkoutCard(label: "Quick Workout", workout: workout, weightKg: weight)
+                    WorkoutCard(label: L("Quick Workout"), workout: workout, weightKg: weight)
                 }
             }
         }

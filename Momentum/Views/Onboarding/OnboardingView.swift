@@ -71,8 +71,29 @@ struct OnboardingView: View {
     }
 
     // 0 ------------------------------------------------------------------
+    private var languagePicker: some View {
+        HStack(spacing: 8) {
+            ForEach(AppLanguage.allCases) { language in
+                let current = store.language == language
+                Button { store.profile.language = language } label: {
+                    Text(language.nativeName)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(current ? Color.white : Color.primary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(current ? Theme.pink : Color.primary.opacity(0.08)))
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(current ? .isSelected : [])
+            }
+            Spacer()
+        }
+    }
+
     private var welcomeStep: some View {
         VStack(alignment: .leading, spacing: 20) {
+            languagePicker
+
             ZStack {
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
                     .fill(LinearGradient(colors: [Theme.pink, Color(hex: 0xFF7A45)], startPoint: .topLeading, endPoint: .bottomTrailing))
@@ -84,21 +105,21 @@ struct OnboardingView: View {
             .padding(.top, 24)
 
             header(
-                "Momentum",
-                "A free training plan built around you. It learns from every workout, and everything stays on this iPhone."
+                L("Momentum"),
+                L("A free training plan built around you. It learns from every workout, and everything stays on this iPhone.")
             )
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("What should we call you?")
+                Text(L("What should we call you?"))
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.secondary)
-                TextField("Your name", text: $draft.name)
+                TextField(L("Your name"), text: $draft.name)
                     .textContentType(.givenName)
                     .padding(14)
                     .background(RoundedRectangle(cornerRadius: 14).fill(Color(.secondarySystemGroupedBackground)))
             }
 
-            Label("No account, no sign-in, no tracking.", systemImage: "lock.fill")
+            Label(L("No account, no sign-in, no tracking."), systemImage: "lock.fill")
                 .font(.system(size: 13))
                 .foregroundStyle(.secondary)
         }
@@ -107,7 +128,7 @@ struct OnboardingView: View {
     // 1 ------------------------------------------------------------------
     private var goalStep: some View {
         VStack(alignment: .leading, spacing: 12) {
-            header("Your main goal", "This decides rep ranges, rest times, weekly volume and whether we add cardio.")
+            header(L("Your main goal"), L("This decides rep ranges, rest times, weekly volume and whether we add cardio."))
             ForEach(Goal.allCases) { goal in
                 OptionCard(
                     symbol: goal.symbol,
@@ -122,14 +143,14 @@ struct OnboardingView: View {
     // 2 ------------------------------------------------------------------
     private var experienceStep: some View {
         VStack(alignment: .leading, spacing: 10) {
-            header("Your experience", "Be honest. Starting a little easier is how progress lasts.")
+            header(L("Your experience"), L("Be honest. Starting a little easier is how progress lasts."))
 
-            sectionLabel("How long have you trained consistently?")
+            sectionLabel(L("How long have you trained consistently?"))
             ForEach(TrainingHistory.allCases) { option in
                 ChoiceRow(title: option.title, selected: draft.history == option) { draft.history = option }
             }
 
-            sectionLabel("How often in the last three months?")
+            sectionLabel(L("How often in the last three months?"))
             ForEach(RecentFrequency.allCases) { option in
                 ChoiceRow(title: option.title, selected: draft.frequency == option) { draft.frequency = option }
             }
@@ -151,7 +172,7 @@ struct OnboardingView: View {
                 }
                 Spacer()
                 Picker(title, selection: selection) {
-                    Text("Skip").tag(Int?.none)
+                    Text(L("Skip")).tag(Int?.none)
                     ForEach(options, id: \.value) { option in
                         Text(option.label).tag(Int?.some(option.value))
                     }
@@ -166,22 +187,22 @@ struct OnboardingView: View {
 
     private var checkStep: some View {
         VStack(alignment: .leading, spacing: 12) {
-            header("A quick strength check", "Optional. It lets us start each movement at the right difficulty. Skip anything you'd rather not try.")
+            header(L("A quick strength check"), L("Optional. It lets us start each movement at the right difficulty. Skip anything you'd rather not try."))
 
-            checkPicker("Push-ups", "In a row, with good form", selection: $draft.check.pushups, options: [
-                ("None yet", 0), ("1-4", 3), ("5-14", 10), ("15-24", 20), ("25+", 30)
+            checkPicker(L("Push-ups"), L("In a row, with good form"), selection: $draft.check.pushups, options: [
+                (L("None yet"), 0), ("1-4", 3), ("5-14", 10), ("15-24", 20), ("25+", 30)
             ])
-            checkPicker("Bodyweight squats", "In a row, to parallel", selection: $draft.check.squats, options: [
-                ("Under 15", 10), ("15-29", 20), ("30-44", 35), ("45+", 50)
+            checkPicker(L("Bodyweight squats"), L("In a row, to parallel"), selection: $draft.check.squats, options: [
+                (L("Under 15"), 10), ("15-29", 20), ("30-44", 35), ("45+", 50)
             ])
-            checkPicker("Plank hold", "On forearms, straight body", selection: $draft.check.plankSeconds, options: [
-                ("Under 20 s", 15), ("20-44 s", 30), ("45-89 s", 60), ("90 s+", 100)
+            checkPicker(L("Plank hold"), L("On forearms, straight body"), selection: $draft.check.plankSeconds, options: [
+                (L("Under 20 s"), 15), (L("20-44 s"), 30), (L("45-89 s"), 60), (L("90 s+"), 100)
             ])
-            checkPicker("Pull-ups", "Full reps, no swinging", selection: $draft.check.pullups, options: [
-                ("None", 0), ("1-2", 1), ("3-7", 5), ("8+", 10)
+            checkPicker(L("Pull-ups"), L("Full reps, no swinging"), selection: $draft.check.pullups, options: [
+                (L("None"), 0), ("1-2", 1), ("3-7", 5), ("8+", 10)
             ])
 
-            Label("Nothing here is judged. If a movement turns out too easy or hard, the app moves you up or down on its own.", systemImage: "info.circle")
+            Label(L("Nothing here is judged. If a movement turns out too easy or hard, the app moves you up or down on its own."), systemImage: "info.circle")
                 .font(.system(size: 13))
                 .foregroundStyle(.secondary)
                 .padding(.top, 4)
@@ -192,7 +213,7 @@ struct OnboardingView: View {
     private static let weekdayOrder = [2, 3, 4, 5, 6, 7, 1]
 
     private func weekdayName(_ weekday: Int) -> String {
-        Calendar.current.shortWeekdaySymbols[weekday - 1]
+        Loc.calendar.shortWeekdaySymbols[weekday - 1]
     }
 
     private func toggleWeekday(_ weekday: Int) {
@@ -214,7 +235,7 @@ struct OnboardingView: View {
 
     private var scheduleStep: some View {
         VStack(alignment: .leading, spacing: 14) {
-            header("Your schedule", "Pick the days you can really train. We build the split around them.")
+            header(L("Your schedule"), L("Pick the days you can really train. We build the split around them."))
 
             HStack(spacing: 6) {
                 ForEach(Self.weekdayOrder, id: \.self) { weekday in
@@ -232,18 +253,24 @@ struct OnboardingView: View {
                 }
             }
 
-            Text("**\(draft.trainingWeekdays.count)** days a week: \(scheduleSummary)")
-                .font(.system(size: 14))
-                .foregroundStyle(.secondary)
+            Group {
+                if draft.trainingWeekdays.count == 1 {
+                    LText("**{0}** day a week: {1}", draft.trainingWeekdays.count, scheduleSummary)
+                } else {
+                    LText("**{0}** days a week: {1}", draft.trainingWeekdays.count, scheduleSummary)
+                }
+            }
+            .font(.system(size: 14))
+            .foregroundStyle(.secondary)
 
-            sectionLabel("Time you have per session")
-            Picker("Session length", selection: $draft.sessionMinutes) {
+            sectionLabel(L("Time you have per session"))
+            Picker(L("Session length"), selection: $draft.sessionMinutes) {
                 ForEach([20, 30, 45, 60, 90], id: \.self) { minutes in
-                    Text("\(minutes) min").tag(minutes)
+                    Text(L("{0} min", minutes)).tag(minutes)
                 }
             }
             .pickerStyle(.segmented)
-            Text("This is a ceiling. If your level needs less volume to make progress, sessions will be shorter and we'll say so.")
+            Text(L("This is a ceiling. If your level needs less volume to make progress, sessions will be shorter and we'll say so."))
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
         }
@@ -252,7 +279,7 @@ struct OnboardingView: View {
     // 5 ------------------------------------------------------------------
     private var equipmentStep: some View {
         VStack(alignment: .leading, spacing: 12) {
-            header("Your equipment", "We only pick exercises you can actually do.")
+            header(L("Your equipment"), L("We only pick exercises you can actually do."))
             ForEach(Equipment.allCases) { equipment in
                 OptionCard(
                     symbol: equipment.symbol,
@@ -264,16 +291,16 @@ struct OnboardingView: View {
 
             if draft.equipment == .dumbbells {
                 VStack(alignment: .leading, spacing: 10) {
-                    Toggle("Adjustable or plenty of weights", isOn: Binding(
+                    Toggle(L("Adjustable or plenty of weights"), isOn: Binding(
                         get: { draft.maxDumbbellKg == 0 },
                         set: { draft.maxDumbbellKg = $0 ? 0 : 20 }
                     ))
                     .tint(Theme.pink)
                     if draft.maxDumbbellKg > 0 {
                         Stepper(value: dumbbellBinding, in: dumbbellRange, step: 1) {
-                            Text("Heaviest dumbbell **\(Int(dumbbellBinding.wrappedValue)) \(draft.units.weightLabel)**")
+                            LText("Heaviest dumbbell **{0} {1}**", Int(dumbbellBinding.wrappedValue), draft.units.weightLabel)
                         }
-                        Text("When you outgrow it, we add reps and harder variations instead of asking for more weight.")
+                        Text(L("When you outgrow it, we add reps and harder variations instead of asking for more weight."))
                             .font(.system(size: 12))
                             .foregroundStyle(.secondary)
                     }

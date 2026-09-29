@@ -15,6 +15,7 @@ Built with SwiftUI and Swift Charts. Requires iOS 17+.
 - **Progress.** Weekly calories and minutes against your plan, weekly volume per muscle vs target, estimated 1RM and personal records, body-weight trend, streak.
 - **Apple Health** (optional). Saves finished workouts and body weight; reads steps and active energy (including Apple Watch). Nothing leaves your device.
 - **How-to videos.** Every exercise links to a YouTube proper-form search (curated URLs supported in `ExerciseLibrary.curatedVideos`).
+- **English, Español, Português (Brasil).** The whole app, including exercise names and step-by-step instructions, the engine's "why" sentences and the Health permission prompts, follows your phone's language or one you pick in Settings (or on the first onboarding screen). See *Translations* below.
 - **Quick workouts.** 10-minute blast, no-equipment full body, mobility & stretch.
 
 | Onboarding | Plan & swaps |
@@ -82,8 +83,18 @@ project.yml     XcodeGen project definition
 - Change progression rules in `Progression`, deloads and fatigue in `Periodization`, level/rung changes in `AdaptiveEngine`.
 - Every rule is written down in [docs/ENGINE.md](docs/ENGINE.md); change both together.
 
+## Translations
+
+English text is the lookup key (`L("Up {0} kg: …", 2)`), so there are no string IDs to keep in sync. Tables for Spanish (neutral Latin American, "tú") and Portuguese (Brazil) live in `tools/i18n/strings_*.py` and `tools/i18n/exercises.py`, and are compiled into `Models/LocalizationData.swift` and `Models/ExerciseTranslations.swift`.
+
+- Add or change text: wrap it in `L("…")` / `Lp(n, one:, other:)` / `LText("…")` (markdown), add the Spanish and Portuguese versions to the Python tables, then run `python3 tools/i18n/export.py --strict` (fails on missing keys or mismatched `{0}` placeholders) and commit the regenerated Swift files.
+- SwiftUI's `Text("literal")` looks in the app bundle, not our tables, so always pass a string: `Text(L("…"))`.
+- The engine tests run in English; `LocalizationTests` checks every key and exercise is translated, placeholders survive, and that switching language never changes which exercises are planned.
+- To add a language: add a case to `AppLanguage`, a table per Python file, an `InfoPlist.strings` folder under `Momentum/Resources`, and list it in `project.yml`.
+
 ## Known limitations
 
+- Translations were written by an AI assistant, not professional translators. Corrections are welcome (edit the Python tables and re-export).
 - Exercise demos are stylised stick-figure animations, not video. Workout cards use gradients. See `tools/README.md` to edit or add animations.
 - Calories are estimates from MET values, not measured.
 - Apple Health needs a real signing team (a free Apple ID works) because HealthKit is an entitlement. There is no Apple Watch app yet, but Watch activity shows up through Health.

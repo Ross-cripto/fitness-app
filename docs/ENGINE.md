@@ -169,3 +169,7 @@ original again. If nothing fits, the sheet says so and offers to skip the exerci
 * "Low impact only" removes all jumping and impact exercises.
 * Deadlift, back squat and other high-skill barbell lifts require intermediate level.
 * The app is not medical advice. Onboarding says so and recommends seeing a professional for pain.
+
+## 10. Languages
+
+The engine is language-independent: every decision (which exercise, how many sets, which load) is computed from ids and numbers, and only the sentences it shows are looked up in the current language (English, Spanish, Portuguese). Changing the language never changes a plan. A test plans the same weeks in each language and checks the exercises are identical. Exercise names and instructions are looked up by exercise id; the YouTube search uses the translated name so Spanish and Portuguese users get videos in their language. Weekday and month names follow the chosen language, and weights, dates and decimals use its formatting.

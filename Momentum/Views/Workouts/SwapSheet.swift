@@ -54,7 +54,7 @@ struct SwapSheet: View {
                         }
                     }
                 } header: {
-                    Text("Why can't you do \(exercise.name)?")
+                    Text(L("Why can't you do {0}?", exercise.name))
                 }
 
                 if reason == .pain {
@@ -73,13 +73,13 @@ struct SwapSheet: View {
                                 }
                             }
                         }
-                        Toggle("Keep protecting these areas in future workouts", isOn: $protectFromNowOn)
+                        Toggle(L("Keep protecting these areas in future workouts"), isOn: $protectFromNowOn)
                             .tint(Theme.pink)
                             .disabled(painAreas.isEmpty)
                     } header: {
-                        Text("Where does it hurt?")
+                        Text(L("Where does it hurt?"))
                     } footer: {
-                        Text("If pain is sharp or doesn't go away, please stop and see a professional.")
+                        Text(L("If pain is sharp or doesn't go away, please stop and see a professional."))
                     }
                 }
 
@@ -94,13 +94,13 @@ struct SwapSheet: View {
                             Button { chosen = alternative } label: { row(alternative) }
                         }
                     } header: {
-                        Text("Try instead")
+                        Text(L("Try instead"))
                     }
                 }
 
                 if let chosen = chosen {
                     Section {
-                        Picker("How long?", selection: $scope) {
+                        Picker(L("How long?"), selection: $scope) {
                             ForEach(SwapScope.allCases) { Text($0.title).tag($0) }
                         }
                         .pickerStyle(.inline)
@@ -110,14 +110,14 @@ struct SwapSheet: View {
                             onSwap(chosen.exercise, scope, areas)
                             dismiss()
                         } label: {
-                            Text("Swap to \(chosen.exercise.name)")
+                            Text(L("Swap to {0}", chosen.exercise.name))
                                 .font(.system(size: 16, weight: .semibold))
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(Theme.pink)
                     } header: {
-                        Text("Keep this swap")
+                        Text(L("Keep this swap"))
                     }
                 }
 
@@ -126,17 +126,17 @@ struct SwapSheet: View {
                         onSkip()
                         dismiss()
                     } label: {
-                        Text("Skip this exercise today")
+                        Text(L("Skip this exercise today"))
                     }
                 } footer: {
-                    Text("Skipping doesn't change your plan. It just removes it from today's workout.")
+                    Text(L("Skipping doesn't change your plan. It just removes it from today's workout."))
                 }
             }
-            .navigationTitle("Swap exercise")
+            .navigationTitle(L("Swap exercise"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Cancel") { dismiss() }
+                    Button(L("Cancel")) { dismiss() }
                 }
             }
         }
@@ -180,15 +180,15 @@ struct SwapSheet: View {
     private var emptyHint: String {
         switch reason {
         case .tooHard:
-            return "There's no easier version of this for you. Try fewer reps with longer rests, or skip it today."
+            return L("There's no easier version of this for you. Try fewer reps with longer rests, or skip it today.")
         case .tooEasy:
-            return "No harder variation is available. For weighted lifts, just add weight: it goes up automatically when you hit the top of the rep range."
+            return L("No harder variation is available. For weighted lifts, just add weight: it goes up automatically when you hit the top of the rep range.")
         case .pain:
-            return "Nothing else avoids those areas for this movement. Skipping it today is the safest choice."
+            return L("Nothing else avoids those areas for this movement. Skipping it today is the safest choice.")
         case .noEquipment:
-            return "No version with less equipment fits this movement. You can skip it today."
+            return L("No version with less equipment fits this movement. You can skip it today.")
         default:
-            return "No other exercise fits this spot with your current settings."
+            return L("No other exercise fits this spot with your current settings.")
         }
     }
 }
