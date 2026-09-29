@@ -8,11 +8,12 @@ final class ScreenshotTests: XCTestCase {
         continueAfterFailure = false
     }
 
-    private func launch(language: String, demo: Bool = true) -> XCUIApplication {
+    private func launch(language: String, demo: Bool = true, extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         var arguments = ["-uiTesting", "-demoLanguage", language, "-AppleLanguages", "(\(language))"]
         arguments += ["-AppleLocale", ["en": "en_US", "es": "es_419", "pt": "pt_BR"][language] ?? "en_US"]
         if demo { arguments.append("-demoData") }
+        arguments += extra
         app.launchArguments = arguments
         app.launch()
         return app
@@ -82,5 +83,28 @@ final class ScreenshotTests: XCTestCase {
         let fresh = launch(language: "pt", demo: false)
         XCTAssertTrue(fresh.staticTexts.firstMatch.waitForExistence(timeout: 10))
         shot(fresh, "pt", "8-onboarding")
+    }
+
+    /// Every onboarding step, then the home screen of the person just created.
+    func testOnboardingSteps() {
+        let app = launch(language: "es", demo: false)
+        let next = app.buttons["onboardingNext"]
+        for step in 0..<8 {
+            XCTAssertTrue(next.waitForExistence(timeout: 10), "onboarding step \(step)")
+            shot(app, "es", "onboarding-\(step + 1)")
+            next.tap()
+        }
+        XCTAssertTrue(app.buttons["mainWorkoutCard"].waitForExistence(timeout: 15), "home after onboarding")
+        shot(app, "es", "onboarded-home")
+    }
+
+    /// The biggest accessibility text size: layouts must still work.
+    func testLargestTextSize() {
+        let app = launch(language: "pt", extra: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
+        XCTAssertTrue(app.buttons["mainWorkoutCard"].waitForExistence(timeout: 15), "home workout card")
+        shot(app, "pt", "xxxl-1-workouts")
+        app.buttons["mainWorkoutCard"].tap()
+        XCTAssertTrue(app.buttons["startWorkout"].waitForExistence(timeout: 10), "start button")
+        shot(app, "pt", "xxxl-2-workout-detail")
     }
 }

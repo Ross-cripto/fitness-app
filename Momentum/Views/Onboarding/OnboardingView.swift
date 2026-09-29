@@ -485,6 +485,7 @@ struct OnboardingView: View {
                 }
             }
             .buttonStyle(PillButtonStyle())
+            .accessibilityIdentifier("onboardingNext")
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 12)
