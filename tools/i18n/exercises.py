@@ -1,7 +1,7 @@
 """Spanish (neutral Latin American) and Brazilian Portuguese exercise names and steps.
 
 Both tables map exercise id -> {"name": str, "steps": [str, ...]}; step order and
-count match the English source in Momentum/Models/ExerciseLibrary.swift.
+count match the English source in data/exercises.json.
 """
 
 

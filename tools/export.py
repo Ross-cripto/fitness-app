@@ -7,8 +7,8 @@ allm = {}
 for mod in (motions_a, motions_b, motions_c):
     allm.update(mod.M)
 
-lib = open(os.path.join(os.path.dirname(__file__), '..', 'Momentum', 'Models', 'ExerciseLibrary.swift')).read()
-ids = re.findall(r'ex\("(\w+)"', lib)
+catalogue = json.load(open(os.path.join(os.path.dirname(__file__), '..', 'data', 'exercises.json'), encoding='utf-8'))
+ids = [e['id'] for e in catalogue]
 missing = [i for i in ids if i not in allm]
 extra = [k for k in allm if k not in ids]
 print(len(ids), 'exercises;', len(allm), 'motions; missing:', missing, 'extra:', extra)

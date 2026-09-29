@@ -31,7 +31,7 @@ The code is split so most contributions do not need a Mac:
 ## Good first contributions
 
 - **Translate or fix a translation.** Edit `tools/i18n/strings_*.py` or `tools/i18n/exercises.py`, then `python3 tools/i18n/export.py --strict && python3 tools/i18n/export_exercises.py`. Native speakers are very welcome: the current Spanish and Portuguese were written by an AI.
-- **Add an exercise.** `Momentum/Models/ExerciseLibrary.swift` (name, steps, muscle, equipment), `ExerciseMeta.swift` (pattern, stress tags, ladder rung), an animation in `tools/motions_*.py`, and translations. `swift test` checks that everything lines up.
+- **Add an exercise.** Add an entry to [`data/exercises.json`](data/exercises.json) (name, steps, muscle, equipment, movement pattern, joint stress, ladder rung; no Swift needed), its Spanish and Portuguese text in `tools/i18n/exercises.py`, and an animation in `tools/motions_*.py`. Then run `python3 tools/exercises/export.py` and `swift test`, which checks that everything lines up.
 - **Improve the engine.** Change the rule in `Momentum/Engine`, update `docs/ENGINE.md` in the same commit, add a test that fails without your change, and run `swift run EngineSim sim` to see what it does over 16 weeks. `InvariantTests` throws random people at the engine for 12 simulated weeks; run it with more cases (`INVARIANT_SEED=5 INVARIANT_CASES=300 swift test --filter InvariantTests`) after a change.
 - **Pick something from [docs/ROADMAP.md](docs/ROADMAP.md).**
 

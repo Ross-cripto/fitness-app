@@ -22,4 +22,5 @@ jobs:
         run: |
           python3 tools/i18n/export.py --strict
           python3 tools/i18n/export_exercises.py
+          python3 tools/exercises/export.py --check
           git diff --exit-code Momentum/Models/LocalizationData.swift Momentum/Models/ExerciseTranslations.swift

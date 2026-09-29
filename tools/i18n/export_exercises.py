@@ -1,6 +1,6 @@
 """Write Momentum/Models/ExerciseTranslations.swift from tools/i18n/exercises.py.
 
-Validates that every exercise id in ExerciseLibrary.swift has a Spanish and a
+Validates that every exercise id in data/exercises.json has a Spanish and a
 Portuguese entry with the same number of steps as the English source.
 """
 import json
@@ -12,25 +12,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from exercises import ES, PT  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-LIBRARY = os.path.join(ROOT, 'Momentum', 'Models', 'ExerciseLibrary.swift')
+LIBRARY = os.path.join(ROOT, 'data', 'exercises.json')
 OUT = os.path.join(ROOT, 'Momentum', 'Models', 'ExerciseTranslations.swift')
-
-STR = r'"((?:[^"\\]|\\.)*)"'
-EX_START = re.compile(r'\bex\(\s*"([^"]+)"\s*,')
 
 
 def english_steps():
-    """Parse {id: [step, ...]} from the `ex(...)` calls in ExerciseLibrary.swift."""
-    src = open(LIBRARY, encoding='utf-8').read()
-    starts = list(EX_START.finditer(src))
-    result = {}
-    for i, m in enumerate(starts):
-        end = starts[i + 1].start() if i + 1 < len(starts) else len(src)
-        chunk = src[m.end():end]
-        body = chunk[chunk.index('['):]
-        steps = re.findall(STR, body[:re.search(r'\]\s*\)', body).start()])
-        result[m.group(1)] = steps
-    return result
+    """{id: [step, ...]} from data/exercises.json."""
+    with open(LIBRARY, encoding='utf-8') as handle:
+        return {e['id']: e['steps'] for e in json.load(handle)}
 
 
 def validate(english):
@@ -57,7 +46,7 @@ def validate(english):
 def main():
     english = english_steps()
     if not english or any(not s for s in english.values()):
-        sys.exit('could not parse steps from ExerciseLibrary.swift')
+        sys.exit('no exercises found in data/exercises.json')
     errors = validate(english)
     if errors:
         sys.exit('\n'.join(errors))
