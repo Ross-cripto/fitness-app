@@ -215,7 +215,7 @@ PT = {
 "• A lighter deload week comes every {0} weeks, or sooner if you're worn out.": "• A cada {0} semanas há uma semana de descarga mais leve, ou antes, se você estiver exausto.",
 "• After time off, weights come back gently.": "• Depois de um tempo parado, as cargas voltam aos poucos.",
 "• Swap any exercise you can't do, and we'll suggest the right alternative.": "• Troque qualquer exercício que você não consiga fazer e sugerimos a alternativa certa.",
-"Connect Apple Health": "Conectar o Apple Health",
+"Connect Apple Health": "Conectar ao Apple Health",
 "Save workouts and weight to Health and show your steps.": "Salve treinos e peso no Saúde e mostre seus passos.",
 "Start training": "Começar a treinar",
 "Continue": "Continuar",

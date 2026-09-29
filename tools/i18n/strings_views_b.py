@@ -143,7 +143,6 @@ PT = {
 "Sex": "Sexo",
 "Units": "Unidades",
 "Low impact only (no jumping)": "Somente baixo impacto (sem saltos)",
-"Connect Apple Health": "Conectar Apple Health",
 "Language": "Idioma",
 "Automatic": "Automático",
 "Changes the language of the whole app, including exercise names and instructions.": "Altera o idioma de todo o app, incluindo os nomes e as instruções dos exercícios.",
