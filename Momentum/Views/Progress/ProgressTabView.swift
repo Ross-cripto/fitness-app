@@ -20,6 +20,7 @@ struct ProgressTabView: View {
                     dateStrip
                     calorieCard
                     durationCard
+                    reviewCard
                     volumeCard
                     weightCard
                     healthCard
@@ -207,6 +208,30 @@ struct ProgressTabView: View {
         }
         .card()
         .accessibilityElement(children: .combine)
+    }
+
+    private var reviewCard: some View {
+        let review = WeeklyReview.make(profile: store.profile, sessions: store.sessions, weekContaining: selected)
+        let teal = Color(hex: 0x14B8A6)
+        return VStack(alignment: .leading, spacing: 10) {
+            IconBadge(symbol: "checklist", tint: teal, size: 42)
+            Text(L("Week in review"))
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(teal)
+            Text(L("{0} of {1} workouts done", review.completedSessions, review.plannedSessions))
+                .font(.system(size: 15, weight: .medium))
+            ForEach(review.records) { exercise in
+                Label(L("New personal best") + ": " + exercise.name, systemImage: "trophy.fill")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Theme.amber)
+            }
+            if let next = review.nextWeek {
+                Label(next, systemImage: "calendar.badge.clock")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .card()
     }
 
     private var volumeCard: some View {

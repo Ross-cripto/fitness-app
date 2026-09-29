@@ -124,3 +124,19 @@ PT.update({
     "Longest hold": "Maior tempo sustentado",
     "{0} → {1}": "{0} → {1}",
 })
+
+# Weekly review
+ES.update({
+    "Next week is a lighter deload week, so you come back stronger.": "La próxima semana es una semana de descarga más ligera, para que vuelvas más fuerte.",
+    "Next week starts a new training block.": "La próxima semana empieza un nuevo bloque de entrenamiento.",
+    "Week in review": "Resumen de la semana",
+    "{0} of {1} workouts done": "{0} de {1} entrenamientos hechos",
+    "New personal best": "Nuevo récord personal",
+})
+PT.update({
+    "Next week is a lighter deload week, so you come back stronger.": "A próxima semana é uma semana de descarga mais leve, para você voltar mais forte.",
+    "Next week starts a new training block.": "A próxima semana começa um novo bloco de treino.",
+    "Week in review": "Resumo da semana",
+    "{0} of {1} workouts done": "{0} de {1} treinos feitos",
+    "New personal best": "Novo recorde pessoal",
+})
