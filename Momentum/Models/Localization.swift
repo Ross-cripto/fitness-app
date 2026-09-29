@@ -106,14 +106,15 @@ enum Loc {
         }
     }
 
-    /// Formats a number in the current language (12.5 -> "12.5" or "12,5").
+    /// Formats a number in the current language (12.5 -> "12.5" or "12,5"). No thousands separators.
     static func number(_ value: Double, maxFractionDigits: Int = 1) -> String {
-        let formatter = NumberFormatter()
-        formatter.locale = locale
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 0
-        formatter.maximumFractionDigits = maxFractionDigits
-        return formatter.string(from: NSNumber(value: value)) ?? String(value)
+        var text = String(format: "%.\(maxFractionDigits)f", value)
+        if text.contains(".") {
+            while text.hasSuffix("0") { text.removeLast() }
+            if text.hasSuffix(".") { text.removeLast() }
+        }
+        if text == "-0" { text = "0" }
+        return language == .en ? text : text.replacingOccurrences(of: ".", with: ",")
     }
 }
 
