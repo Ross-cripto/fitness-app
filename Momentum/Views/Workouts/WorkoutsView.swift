@@ -124,6 +124,7 @@ struct WorkoutsView: View {
                         weightKg: weight
                     )
                 }
+                .accessibilityIdentifier("mainWorkoutCard")
             } else if let next = store.nextWorkout() {
                 NavigationLink(value: next.workout) {
                     WorkoutCard(
@@ -132,6 +133,7 @@ struct WorkoutsView: View {
                         weightKg: weight
                     )
                 }
+                .accessibilityIdentifier("mainWorkoutCard")
             }
 
             ForEach(QuickKind.allCases) { kind in

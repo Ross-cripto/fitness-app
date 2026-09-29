@@ -59,6 +59,7 @@ struct ProgressTabView: View {
                     .background(Circle().fill(LinearGradient(colors: [Theme.pink, Color(hex: 0xFF7A45)], startPoint: .topLeading, endPoint: .bottomTrailing)))
             }
             .accessibilityLabel(L("Settings"))
+            .accessibilityIdentifier("openSettings")
         }
     }
 
@@ -370,6 +371,7 @@ struct ProgressTabView: View {
                     Text(L("All workouts"))
                         .font(.system(size: 14, weight: .semibold))
                 }
+                .accessibilityIdentifier("allWorkouts")
             }
             if list.isEmpty {
                 Text(L("No workouts logged on this day."))

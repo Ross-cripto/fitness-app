@@ -99,6 +99,7 @@ struct WorkoutDetailView: View {
             Button(L("Start Workout")) { showPlayer = true }
                 .buttonStyle(PillButtonStyle())
                 .disabled(current.exercises.isEmpty)
+                .accessibilityIdentifier("startWorkout")
                 .padding(.bottom, 24)
         }
         .preferredColorScheme(.dark)

@@ -47,6 +47,17 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.momentum.app.tests
+  MomentumUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - MomentumUITests
+    dependencies:
+      - target: Momentum
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.momentum.app.uitests
 schemes:
   Momentum:
     build:
@@ -55,3 +66,10 @@ schemes:
     test:
       targets:
         - MomentumTests
+  MomentumScreenshots:
+    build:
+      targets:
+        Momentum: all
+    test:
+      targets:
+        - MomentumUITests

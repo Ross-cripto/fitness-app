@@ -1,0 +1,68 @@
+name: App screenshots
+
+# Runs the real app in the simulator with demo data in English, Spanish and Portuguese, saves a screenshot of every
+# main screen, and publishes them to the `ci-screenshots` branch (folder per branch). It doubles as a launch smoke test.
+on:
+  push:
+    branches-ignore: [ci-screenshots]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  screenshots:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Pick a simulator
+        id: sim
+        run: echo "udid=$(.github/scripts/pick-simulator.sh)" >> "$GITHUB_OUTPUT"
+      - name: Run the screenshot tests
+        run: |
+          xcodebuild test \
+            -project Momentum.xcodeproj \
+            -scheme MomentumScreenshots \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -resultBundlePath "$RUNNER_TEMP/screens.xcresult" \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Export screenshots
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/raw" shots
+          xcrun xcresulttool export attachments --path "$RUNNER_TEMP/screens.xcresult" --output-path "$RUNNER_TEMP/raw" || true
+          python3 .github/scripts/collect-screenshots.py "$RUNNER_TEMP/raw" shots
+          ls -la shots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: shots
+      - name: Publish to the ci-screenshots branch
+        if: always() && github.event_name == 'push'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -e
+          [ -n "$(ls shots 2>/dev/null)" ] || { echo "no screenshots"; exit 0; }
+          slug=$(echo "$BRANCH" | tr '/' '_')
+          repo="https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.git"
+          rm -rf "$RUNNER_TEMP/pub"
+          if git ls-remote --exit-code --heads "$repo" ci-screenshots >/dev/null 2>&1; then
+            git clone --depth 1 --branch ci-screenshots "$repo" "$RUNNER_TEMP/pub"
+          else
+            mkdir "$RUNNER_TEMP/pub"; git -C "$RUNNER_TEMP/pub" init -q -b ci-screenshots
+            git -C "$RUNNER_TEMP/pub" remote add origin "$repo"
+          fi
+          rm -rf "$RUNNER_TEMP/pub/$slug"; mkdir -p "$RUNNER_TEMP/pub/$slug"
+          cp shots/*.png "$RUNNER_TEMP/pub/$slug/"
+          cd "$RUNNER_TEMP/pub"
+          git config user.name "github-actions"; git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Screenshots for $BRANCH at ${GITHUB_SHA::7}" || { echo "unchanged"; exit 0; }
+          git push -q origin ci-screenshots

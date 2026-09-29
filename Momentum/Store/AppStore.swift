@@ -110,6 +110,13 @@ final class AppStore: ObservableObject {
         Backup.csv(sessions: sessions)
     }
 
+    /// Replaces everything without a backup file (demo data, UI tests).
+    func seed(_ data: PersonalData) {
+        sessions = data.sessions
+        weights = data.weights
+        profile = data.profile
+    }
+
     /// Replaces everything with the contents of a backup. The current data is kept in a side file first, so a
     /// wrong file can be undone by hand. Throws (and changes nothing) when the file is not a valid backup.
     func restore(from data: Data) throws {
