@@ -10,7 +10,7 @@ Status: ✅ done · 🚧 in progress · ⬜ not started · 💬 needs a decision
 |---|---|---|
 | ✅ | Contributing guide, code of conduct, privacy statement, issue and PR templates | People need to know how to help and what the app promises |
 | 💬 | **Choose a license** | Without one the code is "source available", not open source. The maintainer must pick (MIT/Apache-2.0 for maximum reuse, GPL-3.0/AGPL to keep forks open) |
-| ⬜ | Architecture overview (`docs/ARCHITECTURE.md`) | Where things live and how data flows, for new contributors |
+| ✅ | Architecture overview (`docs/ARCHITECTURE.md`) | Where things live and how data flows, for new contributors |
 | 🚧 | Screenshots from the real app in CI instead of mockups | Shows what the app looks like, and catches layout regressions in three languages |
 
 ## 2. Own your data
