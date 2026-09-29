@@ -17,7 +17,7 @@ Status: ✅ done · 🚧 in progress · ⬜ not started · 💬 needs a decision
 
 | | Item | Why |
 |---|---|---|
-| 🚧 | Backup and restore (one JSON file) and CSV export of workout history | An app that keeps everything on the device must let people move it, back it up, and leave |
+| ✅ | Backup and restore (one JSON file) and CSV export of workout history | An app that keeps everything on the device must let people move it, back it up, and leave |
 | ⬜ | Automatic local backup before schema changes | Never lose a history to an update |
 
 ## 3. See your training
