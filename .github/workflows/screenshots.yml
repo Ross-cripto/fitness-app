@@ -1,14 +1,14 @@
 name: App screenshots
 
-# Runs the real app in the simulator with demo data in English, Spanish and Portuguese, saves a screenshot of every
-# main screen, and publishes them to the `ci-screenshots` branch (folder per branch). It doubles as a launch smoke test.
+# Runs the real app in the simulator with demo data in English, Spanish and Portuguese and saves a screenshot of every
+# main screen as a downloadable artifact of the run (Actions tab > this run > Artifacts > screenshots).
+# It doubles as a launch smoke test.
 on:
   push:
-    branches-ignore: [ci-screenshots]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 # A newer push makes older runs pointless.
 concurrency:
@@ -47,27 +47,3 @@ jobs:
         with:
           name: screenshots
           path: shots
-      - name: Publish to the ci-screenshots branch
-        if: always() && github.event_name == 'push'
-        env:
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: ${{ github.ref_name }}
-        run: |
-          set -e
-          [ -n "$(ls shots 2>/dev/null)" ] || { echo "no screenshots"; exit 0; }
-          slug=$(echo "$BRANCH" | tr '/' '_')
-          repo="https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.git"
-          rm -rf "$RUNNER_TEMP/pub"
-          if git ls-remote --exit-code --heads "$repo" ci-screenshots >/dev/null 2>&1; then
-            git clone --depth 1 --branch ci-screenshots "$repo" "$RUNNER_TEMP/pub"
-          else
-            mkdir "$RUNNER_TEMP/pub"; git -C "$RUNNER_TEMP/pub" init -q -b ci-screenshots
-            git -C "$RUNNER_TEMP/pub" remote add origin "$repo"
-          fi
-          rm -rf "$RUNNER_TEMP/pub/$slug"; mkdir -p "$RUNNER_TEMP/pub/$slug"
-          cp shots/*.png "$RUNNER_TEMP/pub/$slug/"
-          cd "$RUNNER_TEMP/pub"
-          git config user.name "github-actions"; git config user.email "actions@users.noreply.github.com"
-          git add -A
-          git commit -q -m "Screenshots for $BRANCH at ${GITHUB_SHA::7}" || { echo "unchanged"; exit 0; }
-          git push -q origin ci-screenshots
