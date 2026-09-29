@@ -93,13 +93,14 @@ struct SettingsView: View {
             get: { store.profile.healthSync },
             set: { enabled in
                 if enabled {
-                    Task {
+                    Task { @MainActor in
                         let granted = await health.requestAccess()
                         store.profile.healthSync = granted
                         if granted { await health.refreshToday() }
                     }
                 } else {
                     store.profile.healthSync = false
+                    health.clearError()
                 }
             }
         )

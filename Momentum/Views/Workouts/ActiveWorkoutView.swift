@@ -31,6 +31,8 @@ struct ActiveWorkoutView: View {
     @State private var showEndDialog = false
     @State private var showSummary = false
     @State private var elapsedAtFinish = 0
+    @State private var finishedAt = Date()
+    @State private var healthSaved: Bool?
     @State private var feedback: WorkoutFeedback = .justRight
     @State private var saved = false
     @State private var adaptationMessage: String?
@@ -261,10 +263,14 @@ struct ActiveWorkoutView: View {
                     Button("Close") { onClose() }
                         .buttonStyle(PillButtonStyle())
                 } else if saved {
-                    if store.profile.healthSync {
+                    if healthSaved == true {
                         Label("Saved to Apple Health", systemImage: "heart.fill")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(Theme.pink)
+                    } else if healthSaved == false {
+                        Label("Couldn't save to Apple Health. Check Settings → Health → Data Access.", systemImage: "exclamationmark.triangle")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color.white.opacity(0.7))
                     }
                     if let message = adaptationMessage {
                         Label(message, systemImage: "wand.and.stars")
@@ -373,7 +379,8 @@ struct ActiveWorkoutView: View {
     }
 
     private func finishWorkout() {
-        elapsedAtFinish = Int(Date().timeIntervalSince(startedAt))
+        finishedAt = Date()
+        elapsedAtFinish = Int(finishedAt.timeIntervalSince(startedAt))
         holding = nil
         holdRemaining = 0
         restRemaining = 0
@@ -411,7 +418,7 @@ struct ActiveWorkoutView: View {
         }
 
         let session = WorkoutSession(
-            date: Date(),
+            date: finishedAt,
             title: workout.title,
             durationSeconds: duration,
             calories: calories,
@@ -423,7 +430,7 @@ struct ActiveWorkoutView: View {
         adaptationMessage = store.record(session)
         saved = true
         if store.profile.healthSync {
-            Task { await health.saveWorkout(session) }
+            Task { @MainActor in healthSaved = await health.saveWorkout(session) }
         }
     }
 

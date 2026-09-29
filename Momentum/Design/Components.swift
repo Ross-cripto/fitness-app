@@ -178,6 +178,14 @@ struct WeekStrip: View {
         .padding(.horizontal, 12)
         .padding(.bottom, 16)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("This week's training schedule")
+        .accessibilityLabel(accessibilitySummary(days: days))
+    }
+
+    private func accessibilitySummary(days: [Date]) -> String {
+        days.map { day in
+            let name = day.formatted(.dateTime.weekday(.abbreviated))
+            if !store.sessions(on: day).isEmpty { return "\(name) trained" }
+            return PlanGenerator.isTrainingDay(day, profile: store.profile) ? "\(name) scheduled" : "\(name) rest"
+        }.joined(separator: ", ")
     }
 }

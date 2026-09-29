@@ -92,7 +92,7 @@ struct WorkoutsView: View {
         return HStack(spacing: 22) {
             StatPill(symbol: "flame.fill", value: "\(calories)", unit: "cal", tint: Theme.pink)
             StatPill(symbol: "timer", value: "\(minutes)", unit: "min", tint: Theme.green)
-            if store.profile.healthSync {
+            if store.profile.healthSync && health.steps > 0 {
                 StatPill(symbol: "figure.walk", value: "\(health.steps)", unit: "steps", tint: Theme.amber)
             } else {
                 StatPill(symbol: "checkmark.circle.fill", value: "\(sets)", unit: "sets", tint: Theme.amber)

@@ -237,7 +237,7 @@ struct OnboardingView: View {
             get: { draft.healthSync },
             set: { enabled in
                 if enabled {
-                    Task { draft.healthSync = await health.requestAccess() }
+                    Task { @MainActor in draft.healthSync = await health.requestAccess() }
                 } else {
                     draft.healthSync = false
                 }

@@ -14,7 +14,9 @@ final class HealthService: ObservableObject {
 
     private let store = HKHealthStore()
 
-    static var isAvailable: Bool { HKHealthStore.isHealthDataAvailable() }
+    nonisolated static var isAvailable: Bool { HKHealthStore.isHealthDataAvailable() }
+
+    func clearError() { lastError = nil }
 
     private enum HealthError: Error { case failed }
 
@@ -25,7 +27,7 @@ final class HealthService: ObservableObject {
     }
 
     private var readTypes: Set<HKObjectType> {
-        [HKObjectType.workoutType(), HKQuantityType(.stepCount), HKQuantityType(.activeEnergyBurned), HKQuantityType(.bodyMass)]
+        [HKQuantityType(.stepCount), HKQuantityType(.activeEnergyBurned), HKQuantityType(.bodyMass)]
     }
 
     // MARK: Authorization
@@ -58,8 +60,8 @@ final class HealthService: ObservableObject {
         activeCalories = Int(energy.rounded())
     }
 
-    /// Most recent body weight recorded in Health, in kilograms.
-    func latestBodyWeightKg() async -> Double? {
+    /// Most recent body weight recorded in Health, in kilograms, with the date it was measured.
+    func latestBodyWeight() async -> (kg: Double, date: Date)? {
         guard Self.isAvailable else { return nil }
         return await withCheckedContinuation { continuation in
             let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
@@ -69,8 +71,12 @@ final class HealthService: ObservableObject {
                 limit: 1,
                 sortDescriptors: [sort]
             ) { _, samples, _ in
-                let kg = (samples?.first as? HKQuantitySample)?.quantity.doubleValue(for: .gramUnit(with: .kilo))
-                continuation.resume(returning: kg)
+                if let sample = samples?.first as? HKQuantitySample {
+                    let kg = sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
+                    continuation.resume(returning: (kg, sample.endDate))
+                } else {
+                    continuation.resume(returning: nil)
+                }
             }
             store.execute(query)
         }
@@ -109,8 +115,9 @@ final class HealthService: ObservableObject {
     }
 
     /// Saves a finished session as a strength-training workout with its energy burned.
-    func saveWorkout(_ session: WorkoutSession) async {
-        guard Self.isAvailable, session.completedSets > 0 else { return }
+    @discardableResult
+    func saveWorkout(_ session: WorkoutSession) async -> Bool {
+        guard Self.isAvailable, session.completedSets > 0 else { return false }
         let end = session.date
         let start = end.addingTimeInterval(-Double(max(60, session.durationSeconds)))
 
@@ -132,8 +139,10 @@ final class HealthService: ObservableObject {
             }
             try await finish(builder, at: end)
             lastError = nil
+            return true
         } catch {
             lastError = error.localizedDescription
+            return false
         }
     }
 

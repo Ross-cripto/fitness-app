@@ -274,7 +274,7 @@ struct ProgressTabView: View {
                     .font(.system(size: 13))
                     .foregroundStyle(.secondary)
                 Button("Connect Apple Health") {
-                    Task {
+                    Task { @MainActor in
                         if await health.requestAccess() {
                             store.profile.healthSync = true
                             await health.refreshToday()
@@ -354,6 +354,7 @@ struct LogWeightSheet: View {
     @EnvironmentObject private var health: HealthService
     @Environment(\.dismiss) private var dismiss
     @State private var display: Double = 0
+    @State private var importMessage: String?
 
     var body: some View {
         let units = store.profile.units
@@ -368,17 +369,19 @@ struct LogWeightSheet: View {
                 let kg = units.kg(fromDisplay: display)
                 store.addWeight(kg: kg)
                 if store.profile.healthSync {
-                    Task { await health.saveBodyWeight(kg: kg) }
+                    Task { @MainActor in await health.saveBodyWeight(kg: kg) }
                 }
                 dismiss()
             }
             .buttonStyle(PillButtonStyle(tint: Theme.blue))
             if store.profile.healthSync {
                 Button {
-                    Task {
-                        if let kg = await health.latestBodyWeightKg() {
-                            store.addWeight(kg: kg)
+                    Task { @MainActor in
+                        if let latest = await health.latestBodyWeight() {
+                            store.addWeight(kg: latest.kg, on: latest.date)
                             dismiss()
+                        } else {
+                            importMessage = "No weight found in Apple Health."
                         }
                     }
                 } label: {
@@ -386,6 +389,11 @@ struct LogWeightSheet: View {
                         .font(.system(size: 14, weight: .semibold))
                 }
                 .foregroundStyle(Color(hex: 0xFF3B5C))
+                if let message = importMessage {
+                    Text(message)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
             Spacer()
         }
