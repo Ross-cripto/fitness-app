@@ -4,6 +4,7 @@ options:
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
+  developmentLanguage: en
 settings:
   base:
     SWIFT_VERSION: "5.9"
@@ -19,6 +20,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.momentum.app
         GENERATE_INFOPLIST_FILE: YES
+        DEVELOPMENT_LANGUAGE: en
         INFOPLIST_KEY_CFBundleDisplayName: Momentum
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES

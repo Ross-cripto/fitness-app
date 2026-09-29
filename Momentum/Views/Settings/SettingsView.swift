@@ -46,7 +46,7 @@ struct SettingsView: View {
                 Section {
                     HStack(spacing: 6) {
                         ForEach(Self.weekdayOrder, id: \.self) { weekday in
-                            let on = store.profile.trainingWeekdays.contains(weekday)
+                            let on = activeWeekdays.contains(weekday)
                             Button { toggle(weekday) } label: {
                                 Text(Loc.calendar.veryShortWeekdaySymbols[weekday - 1])
                                     .font(.system(size: 14, weight: .semibold))
@@ -56,6 +56,8 @@ struct SettingsView: View {
                                     .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(on ? Theme.pink : Color.primary.opacity(0.08)))
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel(Loc.calendar.standaloneWeekdaySymbols[weekday - 1])
+                            .accessibilityAddTraits(on ? .isSelected : [])
                         }
                     }
                     .listRowInsets(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12))
@@ -65,7 +67,7 @@ struct SettingsView: View {
                 } header: {
                     Text(L("Schedule"))
                 } footer: {
-                    Text(Lp(store.profile.trainingWeekdays.count,
+                    Text(Lp(activeWeekdays.count,
                             one: "{0} day a week. Changing days re-plans upcoming workouts.",
                             other: "{0} days a week. Changing days re-plans upcoming workouts."))
                 }
@@ -176,8 +178,11 @@ struct SettingsView: View {
 
     // MARK: Helpers
 
+    /// The days actually used for planning (an old save with no days uses the engine's default).
+    private var activeWeekdays: [Int] { PlanGenerator.weekdays(for: store.profile) }
+
     private func toggle(_ weekday: Int) {
-        var days = store.profile.trainingWeekdays
+        var days = activeWeekdays
         if let index = days.firstIndex(of: weekday) {
             if days.count > 1 { days.remove(at: index) }
         } else if days.count < 6 {

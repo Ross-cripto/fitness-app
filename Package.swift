@@ -12,7 +12,7 @@ let package = Package(
             name: "Momentum",
             path: "Momentum",
             exclude: [
-                "App", "Views", "Store", "Health", "Assets.xcassets",
+                "App", "Views", "Store", "Health", "Assets.xcassets", "Resources",
                 "Design/FigureView.swift", "Design/Theme.swift", "Design/Components.swift"
             ],
             sources: ["Models", "Engine", "Design/MotionData.swift"]

@@ -9,6 +9,8 @@ struct WorkoutDetailView: View {
     @State private var showPlayer = false
     @State private var infoExercise: Exercise?
     @State private var swapTarget: PlannedExercise?
+    /// Set once a swap or skip happens: re-planning for a new readiness would silently undo today-only changes.
+    @State private var edited = false
 
     init(workout: Workout) {
         _current = State(initialValue: workout)
@@ -72,7 +74,7 @@ struct WorkoutDetailView: View {
                             .padding(.bottom, 12)
                     }
 
-                    if canSetReadiness { readinessPicker }
+                    if canSetReadiness && !edited { readinessPicker }
 
                     if !current.warmup.isEmpty {
                         sectionLabel(Lp(current.warmup.count, one: "Warm-up · {0} drill", other: "Warm-up · {0} drills"))
@@ -96,6 +98,7 @@ struct WorkoutDetailView: View {
 
             Button(L("Start Workout")) { showPlayer = true }
                 .buttonStyle(PillButtonStyle())
+                .disabled(current.exercises.isEmpty)
                 .padding(.bottom, 24)
         }
         .preferredColorScheme(.dark)
@@ -250,11 +253,18 @@ struct WorkoutDetailView: View {
         let prefix = L("Swapped in for {0}.", planned.exercise.name)
         replacement.reason = replacement.reason.map { "\(prefix) \($0)" } ?? prefix
         current.exercises[index] = replacement
+        edited = true
         store.rememberSwap(original: planned.exercise, replacement: exercise, scope: scope, protecting: areas)
+        if !areas.isEmpty {
+            // Newly protected areas apply to the rest of today's workout too.
+            let keep = current.exercises.filter { $0.id == replacement.id || PlanGenerator.isAllowed($0.exercise, profile: store.profile) }
+            if !keep.isEmpty { current.exercises = keep }
+        }
     }
 
     private func skip(_ planned: PlannedExercise) {
         guard current.exercises.count > 1 else { return }
         current.exercises.removeAll { $0.id == planned.id }
+        edited = true
     }
 }

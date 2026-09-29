@@ -13,6 +13,10 @@ struct ActiveWorkoutView: View {
         var value: Int
         /// Weight in the user's display units.
         var weightDisplay: Double
+        /// The prescribed load and how it was shown, so an untouched weight logs exactly what was planned
+        /// (kg -> rounded lb -> kg would drift).
+        var plannedKg: Double = 0
+        var initialDisplay: Double = 0
         var done = false
     }
 
@@ -64,6 +68,11 @@ struct ActiveWorkoutView: View {
         .onAppear(perform: setup)
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
         .onReceive(ticker) { _ in tick() }
+        .onChange(of: page) { _, _ in
+            // A running hold belongs to the page it started on.
+            holding = nil
+            holdRemaining = 0
+        }
         .confirmationDialog(L("End workout?"), isPresented: $showEndDialog, titleVisibility: .visible) {
             Button(L("Finish and save")) { finishWorkout() }
             Button(L("Discard workout"), role: .destructive) { onClose() }
@@ -94,7 +103,7 @@ struct ActiveWorkoutView: View {
                     ForEach(entries[page].indices, id: \.self) { index in
                         setRow(exercise: page, set: index)
                     }
-                    if page >= warmupCount && entries[page].allSatisfy({ $0.done }) { effortSection }
+                    if page >= warmupCount && entries[page].contains(where: { $0.done }) { effortSection }
                 }
                 .padding(20)
             }
@@ -259,7 +268,10 @@ struct ActiveWorkoutView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 Stepper(
-                    value: $entries[e][s].value,
+                    value: Binding(
+                        get: { entries.indices.contains(e) && entries[e].indices.contains(s) ? entries[e][s].value : 1 },
+                        set: { if entries.indices.contains(e), entries[e].indices.contains(s) { entries[e][s].value = $0 } }
+                    ),
                     in: isTimed ? 5...300 : 1...100,
                     step: isTimed ? 5 : 1
                 ) {
@@ -268,7 +280,7 @@ struct ActiveWorkoutView: View {
                 }
                 if exercise.isLoaded {
                     Stepper(
-                        value: $entries[e][s].weightDisplay,
+                        value: weightBinding(e, s),
                         in: 0...1100,
                         step: units.weightStep
                     ) {
@@ -428,11 +440,32 @@ struct ActiveWorkoutView: View {
 
     // MARK: Actions
 
+    private func loggedKg(_ entry: SetEntry) -> Double {
+        abs(entry.weightDisplay - entry.initialDisplay) < 0.001 ? entry.plannedKg : units.kg(fromDisplay: entry.weightDisplay)
+    }
+
+    /// Changing a set's weight carries to the sets after it that are not done yet, so one heavier set does not
+    /// make the rest of the exercise look like skipped sets.
+    private func weightBinding(_ e: Int, _ s: Int) -> Binding<Double> {
+        Binding(
+            get: { entries.indices.contains(e) && entries[e].indices.contains(s) ? entries[e][s].weightDisplay : 0 },
+            set: { newValue in
+                guard entries.indices.contains(e), entries[e].indices.contains(s) else { return }
+                entries[e][s].weightDisplay = newValue
+                for later in (s + 1)..<max(s + 1, entries[e].count) where !entries[e][later].done {
+                    entries[e][later].weightDisplay = newValue
+                }
+            }
+        )
+    }
+
     private func makeEntries(for planned: PlannedExercise) -> [SetEntry] {
         let step = units.weightStep
         let display = units.displayWeight(planned.weightKg ?? 0)
         let rounded = (display / step).rounded() * step
-        return (0..<planned.sets).map { _ in SetEntry(value: planned.target, weightDisplay: rounded) }
+        return (0..<planned.sets).map { _ in
+            SetEntry(value: planned.target, weightDisplay: rounded, plannedKg: planned.weightKg ?? 0, initialDisplay: rounded)
+        }
     }
 
     private func setup() {
@@ -463,6 +496,17 @@ struct ActiveWorkoutView: View {
         holding = nil
         holdRemaining = 0
         store.rememberSwap(original: original.exercise, replacement: exercise, scope: scope, protecting: areas)
+        if !areas.isEmpty {
+            // Newly protected areas apply to the exercises still ahead in this workout.
+            let blocked = current.exercises.indices.filter {
+                $0 > mainIndex && !PlanGenerator.isAllowed(current.exercises[$0].exercise, profile: store.profile)
+            }
+            for index in blocked.reversed() {
+                current.exercises.remove(at: index)
+                entries.remove(at: index + warmupCount)
+            }
+            efforts = efforts.filter { $0.key <= page }
+        }
     }
 
     private func skipCurrent() {
@@ -553,7 +597,7 @@ struct ActiveWorkoutView: View {
             let sets = done.map { entry in
                 SetLog(
                     reps: exercise.kind == .reps ? entry.value : 0,
-                    weightKg: exercise.isLoaded ? units.kg(fromDisplay: entry.weightDisplay) : 0,
+                    weightKg: exercise.isLoaded ? loggedKg(entry) : 0,
                     seconds: exercise.kind == .timed ? entry.value : 0
                 )
             }

@@ -51,8 +51,8 @@ struct WorkoutCard: View {
                         .font(.system(size: 19, weight: .semibold))
                         .foregroundStyle(.white)
                     HStack(spacing: 10) {
-                        Text("\(workout.minutes) min")
-                        Text("\(workout.calories(weightKg: weightKg)) cal")
+                        Text(L("{0} min", workout.minutes))
+                        Text(L("{0} cal", workout.calories(weightKg: weightKg)))
                     }
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(Color.white.opacity(0.65))
@@ -158,7 +158,7 @@ struct WeekStrip: View {
                 let scheduled = PlanGenerator.isTrainingDay(day, profile: store.profile)
                 let isToday = calendar.isDate(day, inSameDayAs: today)
                 VStack(spacing: 6) {
-                    Text(day.formatted(.dateTime.weekday(.narrow)))
+                    Text(Loc.date(day, "EEEEE"))
                         .font(.system(size: 12, weight: isToday ? .bold : .medium))
                         .foregroundStyle(isToday ? Theme.pink : Color.secondary)
                     ZStack {
@@ -183,9 +183,9 @@ struct WeekStrip: View {
 
     private func accessibilitySummary(days: [Date]) -> String {
         days.map { day in
-            let name = day.formatted(.dateTime.weekday(.abbreviated))
-            if !store.sessions(on: day).isEmpty { return "\(name) trained" }
-            return PlanGenerator.isTrainingDay(day, profile: store.profile) ? "\(name) scheduled" : "\(name) rest"
+            let name = Loc.date(day, "EEE")
+            if !store.sessions(on: day).isEmpty { return L("{0} trained", name) }
+            return PlanGenerator.isTrainingDay(day, profile: store.profile) ? L("{0} scheduled", name) : L("{0} rest", name)
         }.joined(separator: ", ")
     }
 }

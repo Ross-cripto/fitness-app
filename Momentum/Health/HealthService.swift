@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import HealthKit
 
@@ -18,7 +19,11 @@ final class HealthService: ObservableObject {
 
     func clearError() { lastError = nil }
 
-    private enum HealthError: Error { case failed }
+    private enum HealthError: LocalizedError {
+        case failed
+
+        var errorDescription: String? { L("Apple Health couldn't complete the request.") }
+    }
 
     // MARK: Types
 
@@ -36,7 +41,7 @@ final class HealthService: ObservableObject {
     /// (Apple deliberately doesn't reveal whether read access was granted.)
     func requestAccess() async -> Bool {
         guard Self.isAvailable else {
-            lastError = "Apple Health isn't available on this device."
+            lastError = L("Apple Health isn't available on this device.")
             return false
         }
         do {

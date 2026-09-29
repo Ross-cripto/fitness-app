@@ -328,14 +328,16 @@ struct OnboardingView: View {
             }
             .pickerStyle(.segmented)
 
-            Stepper(value: weightBinding, in: weightRange, step: 1) {
-                LText("Weight **{0} {1}**", Int(weightBinding.wrappedValue), draft.units.weightLabel)
-            }
-            Stepper(value: heightBinding, in: heightRange, step: 1) {
-                LText("Height **{0} {1}**", Int(heightBinding.wrappedValue), draft.units.heightLabel)
-            }
-            Stepper(value: $draft.age, in: 14...90) {
-                LText("Age **{0}**", draft.age)
+            VStack(spacing: 14) {
+                Stepper(value: weightBinding, in: weightRange, step: 1) {
+                    LText("Weight **{0} {1}**", Int(weightBinding.wrappedValue), draft.units.weightLabel)
+                }
+                Stepper(value: heightBinding, in: heightRange, step: 1) {
+                    LText("Height **{0} {1}**", Int(heightBinding.wrappedValue), draft.units.heightLabel)
+                }
+                Stepper(value: $draft.age, in: 14...90) {
+                    LText("Age **{0}**", draft.age)
+                }
             }
 
             sectionLabel(L("Anything we should protect?"))

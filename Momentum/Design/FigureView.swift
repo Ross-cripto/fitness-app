@@ -163,7 +163,7 @@ struct FigureCard: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(exercise.name) demonstration")
+        .accessibilityLabel(L("{0} demonstration", exercise.name))
     }
 }
 

@@ -127,7 +127,7 @@ final class AppStore: ObservableObject {
     func addWeight(kg: Double, on date: Date = Date()) {
         weights.append(WeightEntry(date: date, kg: kg))
         weights.sort { $0.date < $1.date }
-        profile.weightKg = kg
+        profile.weightKg = weights.last?.kg ?? kg
     }
 
     func resetAll() {

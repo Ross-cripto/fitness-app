@@ -18,7 +18,7 @@ struct ExploreView: View {
                 Section {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            chip("All", isOn: muscle == nil) { muscle = nil }
+                            chip(L("All"), isOn: muscle == nil) { muscle = nil }
                             ForEach(MuscleGroup.allCases) { group in
                                 chip(group.title, isOn: muscle == group) { muscle = group }
                             }
@@ -28,7 +28,7 @@ struct ExploreView: View {
                     .listRowBackground(Color.clear)
                 }
 
-                Section("\(results.count) exercises") {
+                Section(Lp(results.count, one: "{0} exercise", other: "{0} exercises")) {
                     ForEach(results) { exercise in
                         Button { selected = exercise } label: {
                             HStack(spacing: 12) {
@@ -38,7 +38,7 @@ struct ExploreView: View {
                                     Text(exercise.name)
                                         .font(.system(size: 16, weight: .semibold))
                                         .foregroundStyle(.primary)
-                                    Text("\(exercise.muscle.title) · \(exercise.equipment.title) · \(exercise.level.title)")
+                                    Text(L("{0} · {1} · {2}", exercise.muscle.title, exercise.equipment.title, exercise.level.title))
                                         .font(.system(size: 12))
                                         .foregroundStyle(.secondary)
                                 }
@@ -52,8 +52,8 @@ struct ExploreView: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("Explore")
-            .searchable(text: $query, prompt: "Search exercises")
+            .navigationTitle(L("Explore"))
+            .searchable(text: $query, prompt: L("Search exercises"))
             .sheet(item: $selected) { exercise in
                 ExerciseDetailView(exercise: exercise)
             }
@@ -92,15 +92,15 @@ struct ExerciseDetailView: View {
                         pill(exercise.muscle.title)
                         pill(exercise.equipment.title)
                         pill(exercise.level.title)
-                        if exercise.kind == .timed { pill("Timed") }
+                        if exercise.kind == .timed { pill(L("Timed")) }
                     }
 
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("How to")
+                        Text(L("How to"))
                             .font(.system(size: 17, weight: .semibold))
                         ForEach(Array(exercise.steps.enumerated()), id: \.offset) { pair in
                             HStack(alignment: .top, spacing: 12) {
-                                Text("\(pair.offset + 1)")
+                                Text(String(pair.offset + 1))
                                     .font(.system(size: 13, weight: .bold, design: .rounded))
                                     .foregroundStyle(.white)
                                     .frame(width: 24, height: 24)
@@ -117,10 +117,10 @@ struct ExerciseDetailView: View {
                                 .font(.system(size: 22))
                                 .foregroundStyle(.red)
                             VStack(alignment: .leading, spacing: 1) {
-                                Text("Watch a video on YouTube")
+                                Text(L("Watch a video on YouTube"))
                                     .font(.system(size: 15, weight: .semibold))
                                     .foregroundStyle(.primary)
-                                Text("Proper-form tutorials for \(exercise.name)")
+                                Text(L("Proper-form tutorials for {0}", exercise.name))
                                     .font(.system(size: 12))
                                     .foregroundStyle(.secondary)
                             }
@@ -135,7 +135,7 @@ struct ExerciseDetailView: View {
 
                     if let best = store.bestSet(for: exercise.id) {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Your best")
+                            Text(L("Your best"))
                                 .font(.system(size: 17, weight: .semibold))
                             Text(bestText(best))
                                 .font(.system(size: 22, weight: .bold, design: .rounded))
@@ -148,7 +148,7 @@ struct ExerciseDetailView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+                    Button(L("Done")) { dismiss() }
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -165,8 +165,8 @@ struct ExerciseDetailView: View {
 
     private func bestText(_ set: SetLog) -> String {
         let units = store.profile.units
-        if exercise.kind == .timed { return "\(set.seconds) sec hold" }
-        if set.weightKg > 0 { return "\(units.formatWeight(set.weightKg)) × \(set.reps)" }
-        return "\(set.reps) reps"
+        if exercise.kind == .timed { return L("{0} sec hold", set.seconds) }
+        if set.weightKg > 0 { return L("{0} × {1}", units.formatWeight(set.weightKg), set.reps) }
+        return Lp(set.reps, one: "{0} rep", other: "{0} reps")
     }
 }

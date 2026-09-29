@@ -121,15 +121,17 @@ struct SwapSheet: View {
                     }
                 }
 
-                Section {
-                    Button(role: .destructive) {
-                        onSkip()
-                        dismiss()
-                    } label: {
-                        Text(L("Skip this exercise today"))
+                if workout.exercises.count > 1 {
+                    Section {
+                        Button(role: .destructive) {
+                            onSkip()
+                            dismiss()
+                        } label: {
+                            Text(L("Skip this exercise today"))
+                        }
+                    } footer: {
+                        Text(L("Skipping doesn't change your plan. It just removes it from today's workout."))
                     }
-                } footer: {
-                    Text(L("Skipping doesn't change your plan. It just removes it from today's workout."))
                 }
             }
             .navigationTitle(L("Swap exercise"))
@@ -153,10 +155,10 @@ struct SwapSheet: View {
                         .foregroundStyle(.primary)
                     Text(alternative.relation.title)
                         .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(tint(alternative.relation))
+                        .foregroundStyle(relationTint(alternative.relation))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Capsule().fill(tint(alternative.relation).opacity(0.15)))
+                        .background(Capsule().fill(relationTint(alternative.relation).opacity(0.15)))
                 }
                 Text(alternative.why)
                     .font(.system(size: 13))
@@ -169,7 +171,7 @@ struct SwapSheet: View {
         }
     }
 
-    private func tint(_ relation: Relation) -> Color {
+    private func relationTint(_ relation: Relation) -> Color {
         switch relation {
         case .easier: return Theme.green
         case .similar: return Color.secondary
