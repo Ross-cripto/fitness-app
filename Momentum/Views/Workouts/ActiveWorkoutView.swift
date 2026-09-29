@@ -109,16 +109,15 @@ struct ActiveWorkoutView: View {
     private var exerciseHeader: some View {
         let planned = workout.exercises[page]
         let exercise = planned.exercise
-        return VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 12) {
-                IconBadge(symbol: exercise.symbol, tint: Theme.pink, size: 48)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(exercise.name)
-                        .font(.system(size: 26, weight: .bold))
-                    Text("\(exercise.muscle.title) · \(planned.targetLabel)")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.white.opacity(0.6))
-                }
+        return VStack(alignment: .leading, spacing: 12) {
+            FigureCard(exercise: exercise)
+                .frame(height: 230)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(exercise.name)
+                    .font(.system(size: 26, weight: .bold))
+                Text("\(exercise.muscle.title) · \(planned.targetLabel)")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Color.white.opacity(0.6))
             }
             DisclosureGroup("How to do it") {
                 VStack(alignment: .leading, spacing: 8) {

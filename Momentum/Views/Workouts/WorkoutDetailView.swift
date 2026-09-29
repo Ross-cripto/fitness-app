@@ -107,14 +107,8 @@ struct WorkoutDetailView: View {
                 infoExercise = exercise
             } label: {
                 HStack(spacing: 12) {
-                    ZStack {
-                        LinearGradient(colors: exercise.muscle.colors, startPoint: .topLeading, endPoint: .bottomTrailing)
-                        Image(systemName: exercise.symbol)
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(Color.white.opacity(0.85))
-                    }
-                    .frame(width: 76, height: 56)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    FigureThumb(exercise: exercise, animated: true)
+                        .frame(width: 76, height: 56)
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text(exercise.name)

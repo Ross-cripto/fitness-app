@@ -254,3 +254,48 @@ final class UnitTests: XCTestCase {
         XCTAssertEqual(UnitSystem.metric.formatWeight(12.5), "12.5 kg")
     }
 }
+
+final class MotionTests: XCTestCase {
+    func testEveryExerciseHasAWellFormedMotion() {
+        XCTAssertFalse(MotionLibrary.all.isEmpty, "MotionData.json failed to decode")
+        for exercise in ExerciseLibrary.all {
+            guard let motion = MotionLibrary.motion(for: exercise.id) else {
+                XCTFail("no animation for \(exercise.id)")
+                continue
+            }
+            XCTAssertEqual(motion.bounds.count, 4, exercise.id)
+            XCTAssertGreaterThanOrEqual(motion.frames.count, 2, exercise.id)
+            XCTAssertTrue(motion.frames.allSatisfy { $0.count == 14 }, exercise.id)
+            XCTAssertGreaterThan(motion.dur, 0.2, exercise.id)
+            XCTAssertEqual(motion.pose(at: 1.234).count, 14, exercise.id)
+        }
+    }
+
+    func testNoAnimationForUnknownExercise() {
+        XCTAssertNil(MotionLibrary.motion(for: "does_not_exist"))
+    }
+
+    func testBlendTakesShortestWayAroundTheCircle() {
+        var a = [Double](repeating: 0, count: 14)
+        var b = a
+        a[2] = 170
+        b[2] = -170
+        let mid = Motion.blend(a, b, 0.5)
+        XCTAssertEqual(abs(mid[2]), 180, accuracy: 0.001)
+    }
+
+    func testPoseLoopsSmoothly() throws {
+        let motion = try XCTUnwrap(MotionLibrary.motion(for: "pushup"))
+        let start = motion.pose(at: 0)
+        let wrapped = motion.pose(at: motion.dur * Double(motion.frames.count))
+        for (x, y) in zip(start, wrapped) { XCTAssertEqual(x, y, accuracy: 0.001) }
+    }
+
+    func testStandingFeetSitOnTheFloor() throws {
+        let motion = try XCTUnwrap(MotionLibrary.motion(for: "bw_squat"))
+        for frame in motion.frames {
+            let joints = Skeleton.joints(frame, front: motion.isFront)
+            XCTAssertEqual(joints.ankleNear.y, 0.05, accuracy: 0.02)
+        }
+    }
+}

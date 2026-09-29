@@ -32,7 +32,8 @@ struct ExploreView: View {
                     ForEach(results) { exercise in
                         Button { selected = exercise } label: {
                             HStack(spacing: 12) {
-                                IconBadge(symbol: exercise.symbol, tint: exercise.muscle.colors[0], size: 40)
+                                FigureThumb(exercise: exercise)
+                                    .frame(width: 56, height: 44)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(exercise.name)
                                         .font(.system(size: 16, weight: .semibold))
@@ -81,14 +82,8 @@ struct ExerciseDetailView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    ZStack {
-                        LinearGradient(colors: exercise.muscle.colors, startPoint: .topLeading, endPoint: .bottomTrailing)
-                        Image(systemName: exercise.symbol)
-                            .font(.system(size: 72))
-                            .foregroundStyle(Color.white.opacity(0.85))
-                    }
-                    .frame(height: 170)
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    FigureCard(exercise: exercise)
+                        .frame(height: 240)
 
                     Text(exercise.name)
                         .font(.system(size: 28, weight: .bold))

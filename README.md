@@ -16,7 +16,8 @@ Built with SwiftUI and Swift Charts. Requires iOS 17+.
 - **Your weights matter.** Starting weights are estimated from body weight, level and exercise. After that they follow your logs: hit every rep and it goes up, fall well short and it drops, otherwise it holds. Metric or imperial.
 - **Progress.** Weekly calories and minutes against what your plan asked for, daily-minutes chart, body-weight trend, personal records, workout streak.
 - **Workout player.** Per-set reps/weight steppers, timed holds, rest timer, screen stays awake, swap any exercise for an alternative.
-- **Explore.** Searchable library of ~80 exercises with step-by-step instructions.
+- **Animated demonstrations.** Every one of the 74 exercises has a looping figure animation showing the actual movement, with props (bench, chair, bar, dumbbells, barbell, cables). They play in the workout player, the workout list and the exercise sheet. Drawn in code from bundled data, so they work offline; they respect *Reduce Motion*.
+- **Explore.** Searchable library of 74 exercises with animation and step-by-step instructions.
 - **Quick workouts.** 10-minute blast, wall/no-equipment full body, mobility & stretch.
 
 The UI follows the three reference screens: Workouts home (streak, stats, workout cards), Workout detail (dark hero, exercise list with swap, *Start Workout*), and Progress (date strip, Calorie and Duration cards).
@@ -50,9 +51,10 @@ Momentum/
   Models/       Data types and the built-in exercise library
   Engine/       PlanGenerator (weekly plan), AdaptiveEngine (difficulty), WeightAdvisor (progressive overload)
   Store/        AppStore: state + JSON persistence in Documents/
-  Design/       Theme colors and shared components
+  Design/       Theme, shared components, FigureView (animation renderer) and MotionData (generated)
   Views/        Onboarding, Workouts, Progress, Explore, Settings
 MomentumTests/  Unit tests for the engine
+tools/          Python authoring + preview tools for the exercise animations
 project.yml     XcodeGen project definition
 ```
 
@@ -66,7 +68,7 @@ project.yml     XcodeGen project definition
 
 ## Known limitations
 
-- Exercise visuals are gradients and SF Symbols, not photos or video. To use photos, add images to `Assets.xcassets` and swap them into `WorkoutCard` / `WorkoutDetailView`.
+- Exercise demos are stylised stick-figure animations, not video. Workout cards use gradients. See `tools/README.md` to edit or add animations.
 - Calories are estimates from MET values, not measured.
 - No Apple Health / Watch integration yet (steps from the reference design were replaced by completed sets, since they need HealthKit).
 - Data lives only on the device. Deleting the app deletes your history.
