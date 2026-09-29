@@ -36,7 +36,15 @@ xcodegen generate      # creates Momentum.xcodeproj from project.yml
 open Momentum.xcodeproj
 ```
 
-Pick an iPhone simulator (or your device) and press Run. To install on your own iPhone for free, select your Apple ID under *Signing & Capabilities → Team* (a free Apple ID works; the app just needs re-installing every 7 days).
+To put it on your own iPhone from the command line (Mac with Xcode, phone connected by cable):
+
+```sh
+scripts/install-on-phone.sh --team YOUR_TEAM_ID
+```
+
+See the header of that script for the one-time phone setup (Developer Mode, trusting your developer profile).
+
+Or pick an iPhone simulator (or your device) in Xcode and press Run. To install on your own iPhone for free, select your Apple ID under *Signing & Capabilities → Team* (a free Apple ID works; the app just needs re-installing every 7 days).
 
 Run the tests with `⌘U`. The engine and models are also a Swift package, so on any machine (including Linux CI) you can run the 120+ engine tests and a 16-week simulation without Xcode:
 
