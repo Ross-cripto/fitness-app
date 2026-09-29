@@ -10,6 +10,11 @@ on:
 permissions:
   contents: write
 
+# A newer push makes older runs pointless.
+concurrency:
+  group: screenshots-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   screenshots:
     runs-on: macos-15

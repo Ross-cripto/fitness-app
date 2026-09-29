@@ -5,6 +5,11 @@ on:
     branches-ignore: [ci-screenshots]
   pull_request:
 
+# A newer push makes older runs pointless.
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     runs-on: macos-15
