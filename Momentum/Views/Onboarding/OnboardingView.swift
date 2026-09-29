@@ -55,9 +55,9 @@ struct OnboardingView: View {
     private func header(_ title: String, _ subtitle: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.system(size: 32, weight: .bold))
+                .scaledFont(size: 32, weight: .bold)
             Text(subtitle)
-                .font(.system(size: 16))
+                .scaledFont(size: 16)
                 .foregroundStyle(.secondary)
         }
         .padding(.bottom, 12)
@@ -65,7 +65,7 @@ struct OnboardingView: View {
 
     private func sectionLabel(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 14, weight: .semibold))
+            .scaledFont(size: 14, weight: .semibold)
             .foregroundStyle(.secondary)
             .padding(.top, 8)
     }
@@ -77,7 +77,7 @@ struct OnboardingView: View {
                 let current = store.language == language
                 Button { store.profile.language = language } label: {
                     Text(language.nativeName)
-                        .font(.system(size: 13, weight: .semibold))
+                        .scaledFont(size: 13, weight: .semibold)
                         .foregroundStyle(current ? Color.white : Color.primary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
@@ -98,7 +98,7 @@ struct OnboardingView: View {
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
                     .fill(LinearGradient(colors: [Theme.pink, Color(hex: 0xFF7A45)], startPoint: .topLeading, endPoint: .bottomTrailing))
                 Image(systemName: "flame.fill")
-                    .font(.system(size: 54, weight: .bold))
+                    .scaledFont(size: 54, weight: .bold)
                     .foregroundStyle(.white)
             }
             .frame(width: 104, height: 104)
@@ -111,7 +111,7 @@ struct OnboardingView: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(L("What should we call you?"))
-                    .font(.system(size: 14, weight: .semibold))
+                    .scaledFont(size: 14, weight: .semibold)
                     .foregroundStyle(.secondary)
                 TextField(L("Your name"), text: $draft.name)
                     .textContentType(.givenName)
@@ -120,7 +120,7 @@ struct OnboardingView: View {
             }
 
             Label(L("No account, no sign-in, no tracking."), systemImage: "lock.fill")
-                .font(.system(size: 13))
+                .scaledFont(size: 13)
                 .foregroundStyle(.secondary)
         }
     }
@@ -167,8 +167,8 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.system(size: 16, weight: .semibold))
-                    Text(hint).font(.system(size: 12)).foregroundStyle(.secondary)
+                    Text(title).scaledFont(size: 16, weight: .semibold)
+                    Text(hint).scaledFont(size: 12).foregroundStyle(.secondary)
                 }
                 Spacer()
                 Picker(title, selection: selection) {
@@ -203,7 +203,7 @@ struct OnboardingView: View {
             ])
 
             Label(L("Nothing here is judged. If a movement turns out too easy or hard, the app moves you up or down on its own."), systemImage: "info.circle")
-                .font(.system(size: 13))
+                .scaledFont(size: 13)
                 .foregroundStyle(.secondary)
                 .padding(.top, 4)
         }
@@ -242,7 +242,7 @@ struct OnboardingView: View {
                     let on = draft.trainingWeekdays.contains(weekday)
                     Button { toggleWeekday(weekday) } label: {
                         Text(weekdayName(weekday))
-                            .font(.system(size: 13, weight: .semibold))
+                            .scaledFont(size: 13, weight: .semibold)
                             .foregroundStyle(on ? Color.white : Color.primary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
@@ -260,7 +260,7 @@ struct OnboardingView: View {
                     LText("**{0}** days a week: {1}", draft.trainingWeekdays.count, scheduleSummary)
                 }
             }
-            .font(.system(size: 14))
+            .scaledFont(size: 14)
             .foregroundStyle(.secondary)
 
             sectionLabel(L("Time you have per session"))
@@ -271,7 +271,7 @@ struct OnboardingView: View {
             }
             .pickerStyle(.segmented)
             Text(L("This is a ceiling. If your level needs less volume to make progress, sessions will be shorter and we'll say so."))
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundStyle(.secondary)
         }
     }
@@ -301,12 +301,19 @@ struct OnboardingView: View {
                             LText("Heaviest dumbbell **{0} {1}**", Int(dumbbellBinding.wrappedValue), draft.units.weightLabel)
                         }
                         Text(L("When you outgrow it, we add reps and harder variations instead of asking for more weight."))
-                            .font(.system(size: 12))
+                            .scaledFont(size: 12)
                             .foregroundStyle(.secondary)
                     }
                 }
                 .padding(14)
                 .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
+            }
+
+            if draft.equipment != .fullGym {
+                Toggle(L("I have a pull-up bar"), isOn: $draft.hasPullUpBar)
+                    .tint(Theme.pink)
+                    .padding(14)
+                    .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
             }
         }
     }
@@ -342,7 +349,7 @@ struct OnboardingView: View {
 
             sectionLabel(L("Anything we should protect?"))
             Text(L("We'll never pick exercises that load these areas."))
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundStyle(.secondary)
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                 ForEach(BodyArea.allCases) { area in
@@ -352,7 +359,7 @@ struct OnboardingView: View {
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: on ? "checkmark.circle.fill" : "circle")
-                            Text(area.title).font(.system(size: 15, weight: .medium))
+                            Text(area.title).scaledFont(size: 15, weight: .medium)
                             Spacer()
                         }
                         .foregroundStyle(on ? Theme.pink : Color.primary)
@@ -364,10 +371,10 @@ struct OnboardingView: View {
             }
             Toggle(L("Low impact only (no jumping)"), isOn: $draft.lowImpactOnly)
                 .tint(Theme.pink)
-                .font(.system(size: 15))
+                .scaledFont(size: 15)
 
             Label(L("Momentum is not medical advice. If something hurts, stop and see a professional."), systemImage: "cross.case")
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundStyle(.secondary)
                 .padding(.top, 4)
         }
@@ -396,7 +403,7 @@ struct OnboardingView: View {
 
             planCard(L("Where you start"), symbol: "figure.walk") {
                 ForEach(placement.notes, id: \.self) { note in
-                    Text(L("• {0}", note)).font(.system(size: 14))
+                    Text(L("• {0}", note)).scaledFont(size: 14)
                 }
             }
 
@@ -404,10 +411,10 @@ struct OnboardingView: View {
                 ForEach(Array(week.enumerated()), id: \.offset) { pair in
                     HStack {
                         Text(Loc.date(pair.element.date, "EEEE"))
-                            .font(.system(size: 14, weight: .semibold))
+                            .scaledFont(size: 14, weight: .semibold)
                         Spacer()
                         Text(L("{0} · ~{1} min", pair.element.workout.title, pair.element.workout.minutes))
-                            .font(.system(size: 14))
+                            .scaledFont(size: 14)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -417,10 +424,10 @@ struct OnboardingView: View {
                 ForEach(VolumePlanner.muscles, id: \.self) { muscle in
                     if let target = targets[muscle] {
                         HStack {
-                            Text(muscle.title).font(.system(size: 14, weight: .medium))
+                            Text(muscle.title).scaledFont(size: 14, weight: .medium)
                             Spacer()
                             Text(L("{0} planned · goal {1}-{2}", planned[muscle] ?? 0, target.low, target.high))
-                                .font(.system(size: 13))
+                                .scaledFont(size: 13)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -438,9 +445,9 @@ struct OnboardingView: View {
             Toggle(isOn: healthBinding) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(L("Connect Apple Health"))
-                        .font(.system(size: 16, weight: .semibold))
+                        .scaledFont(size: 16, weight: .semibold)
                     Text(L("Save workouts and weight to Health and show your steps."))
-                        .font(.system(size: 13))
+                        .scaledFont(size: 13)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -454,10 +461,10 @@ struct OnboardingView: View {
     private func planCard<Content: View>(_ title: String, symbol: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Label(title, systemImage: symbol)
-                .font(.system(size: 15, weight: .semibold))
+                .scaledFont(size: 15, weight: .semibold)
                 .foregroundStyle(Theme.pink)
             content()
-                .font(.system(size: 14))
+                .scaledFont(size: 14)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
@@ -470,7 +477,7 @@ struct OnboardingView: View {
         HStack(spacing: 12) {
             if step > 0 {
                 Button(L("Back")) { step -= 1 }
-                    .font(.system(size: 16, weight: .semibold))
+                    .scaledFont(size: 16, weight: .semibold)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 12)
             }
@@ -485,6 +492,7 @@ struct OnboardingView: View {
                 }
             }
             .buttonStyle(PillButtonStyle())
+            .accessibilityIdentifier("onboardingNext")
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 12)
@@ -549,11 +557,11 @@ struct ChoiceRow: View {
         Button(action: action) {
             HStack {
                 Text(title)
-                    .font(.system(size: 16, weight: .medium))
+                    .scaledFont(size: 16, weight: .medium)
                     .foregroundStyle(.primary)
                 Spacer()
                 Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 20))
+                    .scaledFont(size: 20)
                     .foregroundStyle(selected ? Theme.pink : Color.primary.opacity(0.2))
             }
             .padding(14)
@@ -584,16 +592,16 @@ struct OptionCard: View {
                 IconBadge(symbol: symbol, tint: selected ? Theme.pink : Color.gray.opacity(0.5), size: 42)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.system(size: 17, weight: .semibold))
+                        .scaledFont(size: 17, weight: .semibold)
                         .foregroundStyle(.primary)
                     Text(subtitle)
-                        .font(.system(size: 13))
+                        .scaledFont(size: 13)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.leading)
                 }
                 Spacer(minLength: 8)
                 Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 22))
+                    .scaledFont(size: 22)
                     .foregroundStyle(selected ? Theme.pink : Color.primary.opacity(0.2))
             }
             .padding(14)

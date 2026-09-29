@@ -210,6 +210,9 @@ enum ExerciseMetaTable {
     }()
 
     /// Ladder members grouped by rung (ids sorted so results are deterministic).
+    /// Exercises that hang from something. A pull-up bar (or a gym) is enough to plan them.
+    static let needsPullUpBar: Set<String> = ["pullup"]
+
     static let ladders: [Ladder: [Int: [String]]] = {
         var result: [Ladder: [Int: [String]]] = [:]
         for (id, meta) in table {

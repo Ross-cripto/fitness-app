@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @EnvironmentObject private var store: AppStore
@@ -6,6 +7,14 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var confirmReset = false
     @State private var confirmRePlace = false
+
+    private enum ExportKind { case backup, csv }
+    @State private var exportKind: ExportKind?
+    @State private var exportDocument = DataFileDocument(data: Data())
+    @State private var showImporter = false
+    @State private var pendingRestore: (data: Data, workouts: Int, weights: Int)?
+    @State private var backupMessage: String?
+    @State private var notificationsBlocked = false
 
     private static let weekdayOrder = [2, 3, 4, 5, 6, 7, 1]
 
@@ -34,6 +43,10 @@ struct SettingsView: View {
                     Picker(L("Equipment"), selection: $store.profile.equipment) {
                         ForEach(Equipment.allCases) { Text($0.title).tag($0) }
                     }
+                    if store.profile.equipment != .fullGym {
+                        Toggle(L("I have a pull-up bar"), isOn: $store.profile.hasPullUpBar)
+                            .tint(Theme.pink)
+                    }
                     if store.profile.equipment == .dumbbells {
                         Stepper(value: dumbbellBinding, in: 0...130, step: 1) {
                             Text(store.profile.maxDumbbellKg == 0
@@ -49,7 +62,7 @@ struct SettingsView: View {
                             let on = activeWeekdays.contains(weekday)
                             Button { toggle(weekday) } label: {
                                 Text(Loc.calendar.veryShortWeekdaySymbols[weekday - 1])
-                                    .font(.system(size: 14, weight: .semibold))
+                                    .scaledFont(size: 14, weight: .semibold)
                                     .foregroundStyle(on ? Color.white : Color.primary)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
@@ -70,6 +83,23 @@ struct SettingsView: View {
                     Text(Lp(activeWeekdays.count,
                             one: "{0} day a week. Changing days re-plans upcoming workouts.",
                             other: "{0} days a week. Changing days re-plans upcoming workouts."))
+                }
+
+                Section {
+                    Toggle(L("Remind me on training days"), isOn: reminderBinding)
+                        .tint(Theme.pink)
+                    if let minutes = store.profile.reminderMinutes {
+                        DatePicker(L("Time"), selection: reminderTimeBinding(minutes), displayedComponents: .hourAndMinute)
+                    }
+                    if notificationsBlocked {
+                        Text(L("Notifications are turned off for Momentum. You can turn them on in the iPhone Settings app."))
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                    }
+                } header: {
+                    Text(L("Reminders"))
+                } footer: {
+                    Text(L("A quiet notification on the days you plan to train, with that day's workout. It is scheduled on this phone; nothing is sent anywhere."))
                 }
 
                 Section {
@@ -103,17 +133,17 @@ struct SettingsView: View {
                                 Text(ExerciseLibrary.exercise(id).name)
                                 Spacer()
                                 Button(L("Show again")) { showAgain(id) }
-                                    .font(.system(size: 14, weight: .semibold))
+                                    .scaledFont(size: 14, weight: .semibold)
                             }
                         }
                         ForEach(store.profile.swapPreferences.keys.sorted(), id: \.self) { id in
                             if !store.profile.excludedExercises.contains(id), let replacement = store.profile.swapPreferences[id] {
                                 HStack {
                                     Text(L("{0} → {1}", ExerciseLibrary.exercise(id).name, ExerciseLibrary.exercise(replacement).name))
-                                        .font(.system(size: 14))
+                                        .scaledFont(size: 14)
                                     Spacer()
                                     Button(L("Undo")) { store.profile.swapPreferences[id] = nil }
-                                        .font(.system(size: 14, weight: .semibold))
+                                        .scaledFont(size: 14, weight: .semibold)
                                 }
                             }
                         }
@@ -150,6 +180,16 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    Button(L("Back up my data")) { export(.backup) }
+                    Button(L("Restore from a backup…")) { showImporter = true }
+                    Button(L("Export workout history (CSV)")) { export(.csv) }
+                } header: {
+                    Text(L("Your data"))
+                } footer: {
+                    Text(L("A backup is a plain JSON file you can save anywhere (iCloud Drive, email, another phone). The CSV has one row per set, for spreadsheets."))
+                }
+
+                Section {
                     Button(L("Delete all data"), role: .destructive) { confirmReset = true }
                 } footer: {
                     Text(L("Momentum is free and works fully offline. All data is stored only on this device."))
@@ -169,10 +209,126 @@ struct SettingsView: View {
                 }
                 Button(L("Cancel"), role: .cancel) {}
             }
+            .fileExporter(
+                isPresented: Binding(get: { exportKind != nil }, set: { if !$0 { exportKind = nil } }),
+                document: exportDocument,
+                contentType: exportKind == .csv ? .commaSeparatedText : .json,
+                defaultFilename: exportFilename
+            ) { result in
+                if case .failure = result { backupMessage = L("Couldn't save the file.") }
+            }
+            .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json]) { result in
+                prepareRestore(result)
+            }
+            .confirmationDialog(
+                L("Replace all your data with this backup?"),
+                isPresented: Binding(get: { pendingRestore != nil }, set: { if !$0 { pendingRestore = nil } }),
+                titleVisibility: .visible
+            ) {
+                Button(L("Replace my data"), role: .destructive) { restorePending() }
+                Button(L("Cancel"), role: .cancel) { pendingRestore = nil }
+            } message: {
+                if let pending = pendingRestore {
+                    Text(L("Workouts in this backup: {0}. Weigh-ins: {1}.", pending.workouts, pending.weights)
+                         + " " + L("Your current data will be replaced; a copy is kept on this device in case you change your mind."))
+                }
+            }
+            .alert(L("Backup"), isPresented: Binding(get: { backupMessage != nil }, set: { if !$0 { backupMessage = nil } })) {
+                Button(L("OK"), role: .cancel) {}
+            } message: {
+                Text(backupMessage ?? "")
+            }
             .confirmationDialog(L("Reset your adaptive plan?"), isPresented: $confirmRePlace, titleVisibility: .visible) {
                 Button(L("Re-place me")) { store.resetAdaptation() }
                 Button(L("Cancel"), role: .cancel) {}
             }
+        }
+    }
+
+    // MARK: Reminders
+
+    private var reminderBinding: Binding<Bool> {
+        Binding(
+            get: { store.profile.reminderMinutes != nil },
+            set: { enabled in
+                if enabled {
+                    Task { @MainActor in
+                        let granted = await ReminderScheduler.requestAccess()
+                        notificationsBlocked = !granted
+                        store.profile.reminderMinutes = granted ? (store.profile.reminderMinutes ?? 18 * 60) : nil
+                    }
+                } else {
+                    notificationsBlocked = false
+                    store.profile.reminderMinutes = nil
+                }
+            }
+        )
+    }
+
+    private func reminderTimeBinding(_ minutes: Int) -> Binding<Date> {
+        Binding(
+            get: {
+                let calendar = Calendar.current
+                let start = calendar.startOfDay(for: Date())
+                return calendar.date(byAdding: .minute, value: minutes, to: start) ?? start
+            },
+            set: { date in
+                let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
+                store.profile.reminderMinutes = (parts.hour ?? 18) * 60 + (parts.minute ?? 0)
+            }
+        )
+    }
+
+    // MARK: Backup
+
+    private var exportFilename: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        let day = formatter.string(from: Date())
+        return exportKind == .csv ? "momentum-history-\(day)" : "momentum-backup-\(day)"
+    }
+
+    private func export(_ kind: ExportKind) {
+        switch kind {
+        case .backup:
+            guard let data = try? store.exportBackup() else {
+                backupMessage = L("Couldn't save the file.")
+                return
+            }
+            exportDocument = DataFileDocument(data: data)
+        case .csv:
+            exportDocument = DataFileDocument(data: Data(store.exportCSV().utf8))
+        }
+        exportKind = kind
+    }
+
+    private func prepareRestore(_ result: Result<URL, Error>) {
+        guard case .success(let url) = result else { return }
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        guard let data = try? Data(contentsOf: url) else {
+            backupMessage = L("Couldn't read that file.")
+            return
+        }
+        do {
+            let contents = try Backup.read(data)
+            pendingRestore = (data, contents.sessions.count, contents.weights.count)
+        } catch BackupError.newerVersion {
+            backupMessage = L("This backup was made by a newer version of Momentum. Update the app and try again.")
+        } catch {
+            backupMessage = L("That file is not a Momentum backup.")
+        }
+    }
+
+    private func restorePending() {
+        guard let pending = pendingRestore else { return }
+        pendingRestore = nil
+        do {
+            try store.restore(from: pending.data)
+            backupMessage = L("Backup restored.")
+        } catch {
+            backupMessage = L("That file is not a Momentum backup.")
         }
     }
 

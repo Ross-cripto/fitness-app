@@ -33,12 +33,6 @@ struct Totals: Equatable {
 /// Documents folder. No account, no network, no analytics.
 @MainActor
 final class AppStore: ObservableObject {
-    private struct Snapshot: Codable {
-        var profile: UserProfile
-        var sessions: [WorkoutSession]
-        var weights: [WeightEntry]
-    }
-
     @Published var profile: UserProfile {
         didSet {
             applyLanguage()
@@ -54,7 +48,7 @@ final class AppStore: ObservableObject {
         let url = fileURL ?? AppStore.defaultURL()
         self.fileURL = url
         if let data = try? Data(contentsOf: url) {
-            if let snapshot = try? AppStore.decoder.decode(Snapshot.self, from: data) {
+            if let snapshot = try? AppStore.decoder.decode(PersonalData.self, from: data) {
                 profile = snapshot.profile
                 sessions = snapshot.sessions
                 weights = snapshot.weights
@@ -99,9 +93,40 @@ final class AppStore: ObservableObject {
     }
 
     private func save() {
-        let snapshot = Snapshot(profile: profile, sessions: sessions, weights: weights)
+        let snapshot = PersonalData(profile: profile, sessions: sessions, weights: weights)
         guard let data = try? AppStore.encoder.encode(snapshot) else { return }
         try? data.write(to: fileURL, options: [.atomic])
+    }
+
+    // MARK: Backup
+
+    /// The whole history as a JSON backup the person can keep anywhere.
+    func exportBackup() throws -> Data {
+        try Backup.export(PersonalData(profile: profile, sessions: sessions, weights: weights))
+    }
+
+    /// Workout history as CSV (one row per set) for spreadsheets.
+    func exportCSV() -> String {
+        Backup.csv(sessions: sessions)
+    }
+
+    /// Replaces everything without a backup file (demo data, UI tests).
+    func seed(_ data: PersonalData) {
+        sessions = data.sessions
+        weights = data.weights
+        profile = data.profile
+    }
+
+    /// Replaces everything with the contents of a backup. The current data is kept in a side file first, so a
+    /// wrong file can be undone by hand. Throws (and changes nothing) when the file is not a valid backup.
+    func restore(from data: Data) throws {
+        let restored = try Backup.read(data)
+        let backup = fileURL.deletingLastPathComponent().appendingPathComponent("momentum-data.before-restore.json")
+        try? FileManager.default.removeItem(at: backup)
+        try? FileManager.default.copyItem(at: fileURL, to: backup)
+        sessions = restored.sessions
+        weights = restored.weights
+        profile = restored.profile   // saves everything
     }
 
     // MARK: Profile & body weight

@@ -565,7 +565,9 @@ enum PlanGenerator {
     // MARK: Exercise selection
 
     static func isAllowed(_ exercise: Exercise, profile: UserProfile) -> Bool {
-        if exercise.equipment.rank > profile.equipment.rank { return false }
+        // A pull-up bar is all the equipment a pull-up needs, so it works at home too (the library marks it as gym).
+        let barIsEnough = ExerciseMetaTable.needsPullUpBar.contains(exercise.id) && profile.hasPullUpBar
+        if exercise.equipment.rank > profile.equipment.rank && !barIsEnough { return false }
         if profile.excludedExercises.contains(exercise.id) { return false }
         let meta = exercise.meta
         if profile.lowImpactOnly && meta.isImpact { return false }

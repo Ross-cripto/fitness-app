@@ -261,6 +261,8 @@ struct UserProfile: Codable, Equatable {
     var onboarded: Bool = false
     /// Whether the user connected Apple Health (write workouts and weight, read steps).
     var healthSync: Bool = false
+    /// Training-day reminder time as minutes after midnight. nil means reminders are off.
+    var reminderMinutes: Int?
     /// The language chosen in the app. nil follows the phone's language.
     var language: AppLanguage?
 
@@ -273,6 +275,8 @@ struct UserProfile: Codable, Equatable {
     var trainingWeekdays: [Int] = []
     var limitations: [BodyArea] = []
     var lowImpactOnly: Bool = false
+    /// Whether a pull-up bar is available (a gym always has one). Without it, hanging exercises are never planned.
+    var hasPullUpBar: Bool = false
     /// Heaviest single dumbbell in kilograms. 0 means "no limit".
     var maxDumbbellKg: Double = 0
     var excludedExercises: [String] = []
@@ -318,12 +322,14 @@ struct UserProfile: Codable, Equatable {
         onboarded = value(.onboarded, d.onboarded)
         healthSync = value(.healthSync, d.healthSync)
         language = try? c.decodeIfPresent(AppLanguage.self, forKey: .language)
+        reminderMinutes = try? c.decodeIfPresent(Int.self, forKey: .reminderMinutes)
         history = value(.history, d.history)
         frequency = value(.frequency, d.frequency)
         check = value(.check, d.check)
         trainingWeekdays = value(.trainingWeekdays, d.trainingWeekdays)
         limitations = value(.limitations, d.limitations)
         lowImpactOnly = value(.lowImpactOnly, d.lowImpactOnly)
+        hasPullUpBar = value(.hasPullUpBar, d.hasPullUpBar)
         maxDumbbellKg = value(.maxDumbbellKg, d.maxDumbbellKg)
         excludedExercises = value(.excludedExercises, d.excludedExercises)
         swapPreferences = value(.swapPreferences, d.swapPreferences)

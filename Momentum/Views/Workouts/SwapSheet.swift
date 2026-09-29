@@ -45,7 +45,7 @@ struct SwapSheet: View {
                                     .frame(width: 26)
                                     .foregroundStyle(Theme.pink)
                                 Text(option.title)
-                                    .foregroundStyle(.primary)
+                                    .foregroundStyle(Color.primary)
                                 Spacer()
                                 if reason == option {
                                     Image(systemName: "checkmark").foregroundStyle(Theme.pink)
@@ -65,7 +65,7 @@ struct SwapSheet: View {
                                 chosen = nil
                             } label: {
                                 HStack {
-                                    Text(area.title).foregroundStyle(.primary)
+                                    Text(area.title).foregroundStyle(Color.primary)
                                     Spacer()
                                     if painAreas.contains(area) {
                                         Image(systemName: "checkmark").foregroundStyle(Theme.pink)
@@ -87,8 +87,8 @@ struct SwapSheet: View {
                     Section {
                         if suggestions.isEmpty {
                             Text(emptyHint)
-                                .font(.system(size: 14))
-                                .foregroundStyle(.secondary)
+                                .scaledFont(size: 14)
+                                .foregroundStyle(Color.secondary)
                         }
                         ForEach(suggestions) { alternative in
                             Button { chosen = alternative } label: { row(alternative) }
@@ -111,7 +111,7 @@ struct SwapSheet: View {
                             dismiss()
                         } label: {
                             Text(L("Swap to {0}", chosen.exercise.name))
-                                .font(.system(size: 16, weight: .semibold))
+                                .scaledFont(size: 16, weight: .semibold)
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
@@ -151,18 +151,18 @@ struct SwapSheet: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
                     Text(alternative.exercise.name)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.primary)
+                        .scaledFont(size: 16, weight: .semibold)
+                        .foregroundStyle(Color.primary)
                     Text(alternative.relation.title)
-                        .font(.system(size: 11, weight: .bold))
+                        .scaledFont(size: 11, weight: .bold)
                         .foregroundStyle(relationTint(alternative.relation))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(Capsule().fill(relationTint(alternative.relation).opacity(0.15)))
                 }
                 Text(alternative.why)
-                    .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                    .scaledFont(size: 13)
+                    .foregroundStyle(Color.secondary)
                     .multilineTextAlignment(.leading)
             }
             Spacer()

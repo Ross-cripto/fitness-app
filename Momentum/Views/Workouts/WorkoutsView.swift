@@ -34,7 +34,7 @@ struct WorkoutsView: View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 0) {
                 Text(verbatim: "\(store.streak)")
-                    .font(.system(size: 64, weight: .heavy, design: .rounded))
+                    .scaledFont(size: 64, weight: .heavy, design: .rounded)
                     .overlay(alignment: .topTrailing) {
                         Circle()
                             .fill(Theme.pink)
@@ -42,7 +42,7 @@ struct WorkoutsView: View {
                             .offset(x: 14, y: 6)
                     }
                 Text(L("workout streak"))
-                    .font(.system(size: 12, weight: .medium))
+                    .scaledFont(size: 12, weight: .medium)
                     .foregroundStyle(.secondary)
             }
             Spacer()
@@ -50,7 +50,7 @@ struct WorkoutsView: View {
                 Text(Loc.date(today, "MMMMd") + ",")
                 Text(Loc.date(today, "y"))
             }
-            .font(.system(size: 20, weight: .regular))
+            .scaledFont(size: 20, weight: .regular)
             .foregroundStyle(.secondary)
             .padding(.top, 10)
         }
@@ -85,7 +85,7 @@ struct WorkoutsView: View {
                 Text(L("Rest day, {0}. Recovery is part of the plan.", trimmedName))
             }
         }
-        .font(.system(size: 17, weight: .medium))
+        .scaledFont(size: 17, weight: .medium)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.horizontal, 20)
         .padding(.top, 12)
@@ -98,7 +98,7 @@ struct WorkoutsView: View {
         let minutes = logged.sessions > 0 ? logged.minutes : (planned?.minutes ?? 0)
         let sets = logged.sessions > 0 ? logged.sets : (planned?.totalSets ?? 0)
 
-        return HStack(spacing: 22) {
+        let pills = Group {
             StatPill(symbol: "flame.fill", value: "\(calories)", unit: L("cal"), tint: Theme.pink)
             StatPill(symbol: "timer", value: "\(minutes)", unit: L("min"), tint: Theme.green)
             if store.profile.healthSync && health.steps > 0 {
@@ -107,6 +107,12 @@ struct WorkoutsView: View {
                 StatPill(symbol: "checkmark.circle.fill", value: "\(sets)", unit: L("sets"), tint: Theme.amber)
             }
         }
+        // Side by side when they fit, stacked at large text sizes.
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 22) { pills }
+            VStack(alignment: .leading, spacing: 8) { pills }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
     }
@@ -124,6 +130,7 @@ struct WorkoutsView: View {
                         weightKg: weight
                     )
                 }
+                .accessibilityIdentifier("mainWorkoutCard")
             } else if let next = store.nextWorkout() {
                 NavigationLink(value: next.workout) {
                     WorkoutCard(
@@ -132,6 +139,7 @@ struct WorkoutsView: View {
                         weightKg: weight
                     )
                 }
+                .accessibilityIdentifier("mainWorkoutCard")
             }
 
             ForEach(QuickKind.allCases) { kind in
