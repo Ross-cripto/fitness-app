@@ -79,7 +79,7 @@ project.yml     XcodeGen project definition
 
 ## Tweaking the training logic
 
-- Add or edit exercises in `Models/ExerciseLibrary.swift` (and give them a movement pattern, stress tags and ladder rung in `Models/ExerciseMeta.swift`, plus an animation in `tools/`). `loadRatio` is a typical working weight as a fraction of body weight.
+- Add or edit exercises in `data/exercises.json` (movement pattern, stress tags and ladder rung are fields there too), then run `python3 tools/exercises/export.py`. Add an animation in `tools/` and translations in `tools/i18n/exercises.py`. `load` is a typical working weight as a fraction of body weight.
 - Change templates in `SessionFocus` and weekly targets in `VolumePlanner`.
 - Change progression rules in `Progression`, deloads and fatigue in `Periodization`, level/rung changes in `AdaptiveEngine`.
 - Every rule is written down in [docs/ENGINE.md](docs/ENGINE.md); change both together.

@@ -106,3 +106,49 @@ final class ExerciseMetaTests: EnglishTestCase {
         XCTAssertTrue(ExerciseLibrary.exercise("overhead_press").meta.stress.contains(.shoulders))
     }
 }
+
+/// The catalogue (data/exercises.json) must be internally consistent, because the engine trusts it.
+final class CatalogTests: EnglishTestCase {
+    func testIdsAreUniqueAndEveryExerciseHasSteps() {
+        let ids = ExerciseLibrary.records.map(\.id)
+        XCTAssertEqual(Set(ids).count, ids.count)
+        XCTAssertGreaterThanOrEqual(ids.count, 75)
+        for record in ExerciseLibrary.records {
+            XCTAssertFalse(record.steps.isEmpty, record.id)
+            XCTAssertFalse(record.name.isEmpty, record.id)
+        }
+    }
+
+    func testLadderMembersMatchTheirMovementPatternAndAreContiguous() {
+        for record in ExerciseLibrary.records {
+            if let ladder = record.ladder {
+                XCTAssertEqual(record.pattern.ladder, ladder, "\(record.id): pattern \(record.pattern) does not climb \(ladder)")
+            }
+        }
+        for ladder in Ladder.allCases {
+            let rungs = Set(ExerciseLibrary.records.filter { $0.ladder == ladder }.map(\.rung))
+            XCTAssertFalse(rungs.isEmpty, "\(ladder) has no members")
+            XCTAssertEqual(rungs, Set(0...(rungs.max() ?? 0)), "\(ladder) rungs are not contiguous")
+        }
+    }
+
+    func testWeightedExercisesNeedEquipment() {
+        for record in ExerciseLibrary.records where record.load != nil {
+            XCTAssertNotEqual(record.equipment, .bodyweight, "\(record.id) is loaded but marked bodyweight")
+        }
+    }
+
+    func testMuscleMatchesPatternForTheEngineBookkeeping() {
+        for record in ExerciseLibrary.records {
+            XCTAssertEqual(record.pattern.muscle, record.muscle, "\(record.id): volume is counted for the pattern's muscle")
+        }
+    }
+
+    func testEveryExerciseHasAnAnimationAndTranslations() {
+        for record in ExerciseLibrary.records {
+            XCTAssertNotNil(MotionLibrary.motion(for: record.id), "\(record.id) has no animation")
+        }
+        XCTAssertEqual(ExerciseText.translatedIDs(in: .es), Set(ExerciseLibrary.records.map(\.id)))
+        XCTAssertEqual(ExerciseText.translatedIDs(in: .pt), Set(ExerciseLibrary.records.map(\.id)))
+    }
+}

@@ -12,5 +12,5 @@ python3 check_interp.py /tmp/mid.png pushup burpee                # keyframes + 
 ```
 
 - `skeleton.py`: forward kinematics + two-bone IK. Must stay in sync with `Skeleton` in `Momentum/Design/FigureView.swift`.
-- `motions_a/b/c.py`: keyframes per exercise (`motion(id, frames, ...)`). Every exercise in `ExerciseLibrary.swift` needs one; `export.py` fails otherwise.
+- `motions_a/b/c.py`: keyframes per exercise (`motion(id, frames, ...)`). Every exercise in `data/exercises.json` needs one; `export.py` fails otherwise.
 - Angles are degrees from straight down (0 = down, 90 = toward +x / facing right, 180 = up). World is y-up, floor at y = 0.

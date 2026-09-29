@@ -42,7 +42,7 @@ English text is the key: `L("Up {0} kg", 2)`. Tables live in `tools/i18n/*.py` a
 
 ## Exercises
 
-`ExerciseLibrary` (what an exercise is), `ExerciseMetaTable` (movement pattern, joint stress, ladder rung), `MotionData` (generated animation keyframes from `tools/`), `ExerciseTranslations` (generated). `swift test` checks these agree.
+The catalogue lives in [`data/exercises.json`](../data/exercises.json): name, steps, muscle, equipment, level, movement pattern, joint stress, ladder rung, calorie factor. `tools/exercises/export.py` validates it and generates `Models/ExerciseCatalog.swift`; `ExerciseLibrary` and `ExerciseMetaTable` decode that at launch. Animations (`MotionData`, from `tools/motions_*.py`) and translations (`ExerciseTranslations`, from `tools/i18n/exercises.py`) are generated the same way and matched by id. `swift test` checks that all four agree.
 
 ## Testing
 

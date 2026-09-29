@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+"""Turns data/exercises.json (the exercise catalogue, the file people edit) into Momentum/Models/ExerciseCatalog.swift.
+
+    python3 tools/exercises/export.py            validate and regenerate the Swift file
+    python3 tools/exercises/export.py --format   also rewrite data/exercises.json in canonical formatting
+    python3 tools/exercises/export.py --check    fail if the Swift file is out of date (used by CI)
+
+Adding an exercise: add an entry to data/exercises.json, add its translations in tools/i18n/exercises.py, an
+animation in tools/motions_*.py, then run this script and `swift test`.
+"""
+import json
+import os
+import re
+import sys
+
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
+SOURCE = os.path.join(ROOT, 'data', 'exercises.json')
+TARGET = os.path.join(ROOT, 'Momentum', 'Models', 'ExerciseCatalog.swift')
+
+MUSCLES = {'chest', 'back', 'legs', 'shoulders', 'arms', 'core', 'cardio', 'fullBody', 'mobility'}
+EQUIPMENT = {'bodyweight', 'dumbbells', 'fullGym'}
+LEVELS = {'beginner', 'intermediate', 'advanced'}
+KINDS = {'reps', 'timed'}
+PATTERNS = {'squat', 'lunge', 'hinge', 'calves', 'horizontalPush', 'verticalPush', 'chestIsolation',
+            'shoulderIsolation', 'rearDelt', 'horizontalPull', 'verticalPull', 'biceps', 'triceps',
+            'coreStability', 'coreFlexion', 'coreRotation', 'cardio', 'fullBody', 'mobility'}
+LADDERS = {'push', 'verticalPush', 'pull', 'squat', 'lunge', 'hinge', 'triceps', 'coreStability', 'coreFlexion'}
+AREAS = {'knees', 'lowerBack', 'shoulders', 'wrists'}
+KEYS = ['id', 'name', 'muscle', 'equipment', 'level', 'kind', 'met', 'load', 'symbol', 'pattern', 'compound',
+        'stress', 'impact', 'ladder', 'rung', 'priority', 'video', 'steps']
+REQUIRED = {'id', 'name', 'muscle', 'equipment', 'level', 'kind', 'met', 'pattern', 'compound', 'stress', 'impact',
+            'rung', 'priority', 'steps'}
+
+
+def load():
+    with open(SOURCE, encoding='utf-8') as handle:
+        return json.load(handle)
+
+
+def validate(exercises):
+    errors = []
+    seen = set()
+    for index, e in enumerate(exercises):
+        where = f"#{index} {e.get('id', '?')}"
+        unknown = set(e) - set(KEYS)
+        missing = REQUIRED - set(e)
+        if unknown:
+            errors.append(f"{where}: unknown fields {sorted(unknown)}")
+        if missing:
+            errors.append(f"{where}: missing fields {sorted(missing)}")
+            continue
+        if not re.fullmatch(r'[a-z][a-z0-9_]*', e['id']):
+            errors.append(f"{where}: id must be snake_case")
+        if e['id'] in seen:
+            errors.append(f"{where}: duplicate id")
+        seen.add(e['id'])
+        for field, allowed in [('muscle', MUSCLES), ('equipment', EQUIPMENT), ('level', LEVELS), ('kind', KINDS),
+                               ('pattern', PATTERNS)]:
+            if e[field] not in allowed:
+                errors.append(f"{where}: {field} '{e[field]}' not in {sorted(allowed)}")
+        if e.get('ladder') is not None and e['ladder'] not in LADDERS:
+            errors.append(f"{where}: unknown ladder {e['ladder']}")
+        if not set(e['stress']) <= AREAS:
+            errors.append(f"{where}: unknown body area in {e['stress']}")
+        if not isinstance(e['met'], (int, float)) or e['met'] <= 0:
+            errors.append(f"{where}: met must be positive")
+        if 'load' in e and not (isinstance(e['load'], (int, float)) and e['load'] > 0):
+            errors.append(f"{where}: load must be a positive fraction of body weight")
+        if not e['steps'] or not all(isinstance(s, str) and s.strip() for s in e['steps']):
+            errors.append(f"{where}: steps must be a non-empty list of sentences")
+        if not e['name'].strip():
+            errors.append(f"{where}: empty name")
+        if e.get('video') is not None and not str(e['video']).startswith('https://'):
+            errors.append(f"{where}: video must be an https URL")
+    # Each ladder needs its rungs to be contiguous from 0, or the engine cannot climb it.
+    rungs = {}
+    for e in exercises:
+        if e.get('ladder'):
+            rungs.setdefault(e['ladder'], set()).add(e['rung'])
+    for ladder, values in rungs.items():
+        if values != set(range(max(values) + 1)):
+            errors.append(f"ladder {ladder}: rungs {sorted(values)} are not contiguous from 0")
+    return errors
+
+
+def canonical(exercises):
+    ordered = [{k: e[k] for k in KEYS if k in e} for e in exercises]
+    text = json.dumps(ordered, ensure_ascii=False, indent=2)
+    # Short lists of body areas read better on one line.
+    text = re.sub(r'"stress": \[\s*([^\]]*?)\s*\]',
+                  lambda m: '"stress": [' + re.sub(r'\s*\n\s*', ' ', m.group(1)) + ']', text)
+    return text + '\n'
+
+
+def swift(exercises):
+    body = json.dumps(exercises, ensure_ascii=False, separators=(',', ':'), sort_keys=True)
+    if '"""#' in body:
+        raise SystemExit('the catalogue contains the sequence """# which cannot be embedded')
+    return ('// Generated by tools/exercises/export.py from data/exercises.json. Do not edit by hand.\n\n'
+            '/// The built-in exercise catalogue as JSON (decoded by `ExerciseLibrary` and `ExerciseMetaTable`).\n'
+            'enum ExerciseCatalog {\n    static let json = #"""\n' + body + '\n"""#\n}\n')
+
+
+def main():
+    exercises = load()
+    errors = validate(exercises)
+    if errors:
+        print('\n'.join(errors), file=sys.stderr)
+        raise SystemExit(1)
+    if '--format' in sys.argv:
+        with open(SOURCE, 'w', encoding='utf-8') as handle:
+            handle.write(canonical(exercises))
+    generated = swift(exercises)
+    if '--check' in sys.argv:
+        current = open(TARGET, encoding='utf-8').read() if os.path.exists(TARGET) else ''
+        if current != generated:
+            print('ExerciseCatalog.swift is out of date: run python3 tools/exercises/export.py', file=sys.stderr)
+            raise SystemExit(1)
+        if open(SOURCE, encoding='utf-8').read() != canonical(exercises):
+            print('data/exercises.json is not canonically formatted: run python3 tools/exercises/export.py --format', file=sys.stderr)
+            raise SystemExit(1)
+        print('ok')
+        return
+    with open(TARGET, 'w', encoding='utf-8') as handle:
+        handle.write(generated)
+    print(f'{len(exercises)} exercises -> {os.path.relpath(TARGET, ROOT)}')
+
+
+if __name__ == '__main__':
+    main()
