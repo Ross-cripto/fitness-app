@@ -40,7 +40,7 @@ Status: ✅ done · 🚧 in progress · ⬜ not started · 💬 needs a decision
 
 | | Item | Why |
 |---|---|---|
-| ⬜ | Property-based fuzz tests in CI (random profiles, histories, dates; invariants: loads within caps, no protected-area violations, deterministic, deload never above the last lift) | A one-off fuzz run found eight real bugs; keeping it prevents regressions. The harness's oracle needs reconciling with `ENGINE.md` first (future-dated logs, per-movement comeback) |
+| 🚧 | Property-based tests in CI ✅ (`InvariantTests`: random people over 12 simulated weeks; safety, load caps, determinism, adaptation limits, swap rules). Next: cover comeback/deload rules and multi-language output | A one-off fuzz run found eight real bugs; this keeps them fixed. Run more with `INVARIANT_SEED=… INVARIANT_CASES=300 swift test --filter InvariantTests` |
 | ⬜ | Review `ENGINE.md` against sports-science sources, with citations | The rules should be defensible, not just plausible |
 | ⬜ | Balance session lengths across the week (a beginner's plan showed ~14, ~23 and ~32 minutes on three days) | Even days feel fairer and match the time the person set |
 | ⬜ | Exercise library as data files (JSON) instead of Swift | Lets non-programmers add exercises and translations by pull request |
