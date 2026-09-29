@@ -12,13 +12,13 @@ struct StatPill: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 5) {
             Image(systemName: symbol)
-                .font(.system(size: large ? 20 : 16, weight: .bold))
+                .scaledFont(size: large ? 20 : 16, weight: .bold)
                 .foregroundStyle(tint)
             Text(value)
-                .font(.system(size: large ? 26 : 20, weight: .bold, design: .rounded))
+                .scaledFont(size: large ? 26 : 20, weight: .bold, design: .rounded)
                 .foregroundStyle(onDark ? Color.white : Color.primary)
             Text(unit)
-                .font(.system(size: large ? 13 : 12, weight: .medium))
+                .scaledFont(size: large ? 13 : 12, weight: .medium)
                 .foregroundStyle(onDark ? Color.white.opacity(0.6) : Color.secondary)
         }
         .accessibilityElement(children: .combine)
@@ -36,7 +36,7 @@ struct WorkoutCard: View {
             LinearGradient(colors: workout.theme.colors, startPoint: .topLeading, endPoint: .bottomTrailing)
 
             Image(systemName: workout.theme.symbol)
-                .font(.system(size: 120, weight: .regular))
+                .scaledFont(size: 120, weight: .regular)
                 .foregroundStyle(Color.white.opacity(0.10))
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                 .padding(.top, 8)
@@ -45,21 +45,21 @@ struct WorkoutCard: View {
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(label)
-                        .font(.system(size: 11, weight: .semibold))
+                        .scaledFont(size: 11, weight: .semibold)
                         .foregroundStyle(Theme.pink)
                     Text(workout.title)
-                        .font(.system(size: 19, weight: .semibold))
+                        .scaledFont(size: 19, weight: .semibold)
                         .foregroundStyle(.white)
                     HStack(spacing: 10) {
                         Text(L("{0} min", workout.minutes))
                         Text(L("{0} cal", workout.calories(weightKg: weightKg)))
                     }
-                    .font(.system(size: 12, weight: .medium))
+                    .scaledFont(size: 12, weight: .medium)
                     .foregroundStyle(Color.white.opacity(0.65))
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
+                    .scaledFont(size: 13, weight: .semibold)
                     .foregroundStyle(Color.white.opacity(0.5))
             }
             .padding(.horizontal, 20)
@@ -78,7 +78,7 @@ struct PillButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 16, weight: .bold))
+            .scaledFont(size: 16, weight: .bold)
             .foregroundStyle(.white)
             .padding(.horizontal, 32)
             .padding(.vertical, 14)
@@ -114,7 +114,7 @@ struct IconBadge: View {
 
     var body: some View {
         Image(systemName: symbol)
-            .font(.system(size: size * 0.45, weight: .bold))
+            .scaledFont(size: size * 0.45, weight: .bold)
             .foregroundStyle(.white)
             .frame(width: size, height: size)
             .background(Circle().fill(tint))
@@ -159,14 +159,14 @@ struct WeekStrip: View {
                 let isToday = calendar.isDate(day, inSameDayAs: today)
                 VStack(spacing: 6) {
                     Text(Loc.date(day, "EEEEE"))
-                        .font(.system(size: 12, weight: isToday ? .bold : .medium))
+                        .scaledFont(size: 12, weight: isToday ? .bold : .medium)
                         .foregroundStyle(isToday ? Theme.pink : Color.secondary)
                     ZStack {
                         Circle().fill(done ? Theme.pink : Color.clear)
                         Circle().stroke(scheduled || done ? Theme.pink : Color.primary.opacity(0.12), lineWidth: 2)
                         if done {
                             Image(systemName: "checkmark")
-                                .font(.system(size: 12, weight: .bold))
+                                .scaledFont(size: 12, weight: .bold)
                                 .foregroundStyle(.white)
                         }
                     }

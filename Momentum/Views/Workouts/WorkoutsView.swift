@@ -34,7 +34,7 @@ struct WorkoutsView: View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 0) {
                 Text(verbatim: "\(store.streak)")
-                    .font(.system(size: 64, weight: .heavy, design: .rounded))
+                    .scaledFont(size: 64, weight: .heavy, design: .rounded)
                     .overlay(alignment: .topTrailing) {
                         Circle()
                             .fill(Theme.pink)
@@ -42,7 +42,7 @@ struct WorkoutsView: View {
                             .offset(x: 14, y: 6)
                     }
                 Text(L("workout streak"))
-                    .font(.system(size: 12, weight: .medium))
+                    .scaledFont(size: 12, weight: .medium)
                     .foregroundStyle(.secondary)
             }
             Spacer()
@@ -50,7 +50,7 @@ struct WorkoutsView: View {
                 Text(Loc.date(today, "MMMMd") + ",")
                 Text(Loc.date(today, "y"))
             }
-            .font(.system(size: 20, weight: .regular))
+            .scaledFont(size: 20, weight: .regular)
             .foregroundStyle(.secondary)
             .padding(.top, 10)
         }
@@ -85,7 +85,7 @@ struct WorkoutsView: View {
                 Text(L("Rest day, {0}. Recovery is part of the plan.", trimmedName))
             }
         }
-        .font(.system(size: 17, weight: .medium))
+        .scaledFont(size: 17, weight: .medium)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.horizontal, 20)
         .padding(.top, 12)

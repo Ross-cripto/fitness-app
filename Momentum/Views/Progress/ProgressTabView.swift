@@ -50,11 +50,11 @@ struct ProgressTabView: View {
     private var header: some View {
         HStack {
             Text(L("Your Progress"))
-                .font(.system(size: 30, weight: .bold))
+                .scaledFont(size: 30, weight: .bold)
             Spacer()
             Button { showSettings = true } label: {
                 Text(initial)
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .scaledFont(size: 17, weight: .bold, design: .rounded)
                     .foregroundStyle(.white)
                     .frame(width: 40, height: 40)
                     .background(Circle().fill(LinearGradient(colors: [Theme.pink, Color(hex: 0xFF7A45)], startPoint: .topLeading, endPoint: .bottomTrailing)))
@@ -103,7 +103,7 @@ struct ProgressTabView: View {
         return Button { selected = day } label: {
             VStack(spacing: 3) {
                 Text(title)
-                    .font(.system(size: 15, weight: isSelected ? .bold : .medium))
+                    .scaledFont(size: 15, weight: isSelected ? .bold : .medium)
                     .foregroundStyle(isSelected ? Color.white : Color.secondary)
                 Circle()
                     .fill(hasWorkout ? (isSelected ? Color.white : Theme.pink) : Color.clear)
@@ -147,20 +147,20 @@ struct ProgressTabView: View {
         return VStack(alignment: .leading, spacing: 12) {
             IconBadge(symbol: "flame.fill", tint: Theme.pink, size: 42)
             Text(L("Calorie"))
-                .font(.system(size: 17, weight: .semibold))
+                .scaledFont(size: 17, weight: .semibold)
                 .foregroundStyle(Theme.pink)
             Text(encouragement(r, calories: true))
-                .font(.system(size: 14))
+                .scaledFont(size: 14)
             HStack(alignment: .firstTextBaseline, spacing: 0) {
                 Text(String(value))
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .scaledFont(size: 30, weight: .bold, design: .rounded)
                     .foregroundStyle(.secondary)
                 Text(L("/{0} Cal.", target))
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .scaledFont(size: 30, weight: .bold, design: .rounded)
                     .foregroundStyle(Theme.pink)
                 Spacer()
                 Text(L("{0}% Completed", percent(r)))
-                    .font(.system(size: 11))
+                    .scaledFont(size: 11)
                     .foregroundStyle(.secondary)
             }
             ProgressBar(value: r, tint: Theme.pink)
@@ -177,20 +177,20 @@ struct ProgressTabView: View {
         return VStack(alignment: .leading, spacing: 12) {
             IconBadge(symbol: "timer", tint: Theme.green, size: 42)
             Text(L("Duration"))
-                .font(.system(size: 17, weight: .semibold))
+                .scaledFont(size: 17, weight: .semibold)
                 .foregroundStyle(Theme.green)
             Text(encouragement(r, calories: false))
-                .font(.system(size: 14))
+                .scaledFont(size: 14)
             HStack(alignment: .firstTextBaseline, spacing: 0) {
                 Text(String(value))
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .scaledFont(size: 30, weight: .bold, design: .rounded)
                     .foregroundStyle(.secondary)
                 Text(L("/{0} mins.", target))
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .scaledFont(size: 30, weight: .bold, design: .rounded)
                     .foregroundStyle(Theme.green)
                 Spacer()
                 Text(L("{0}% Completed", percent(r)))
-                    .font(.system(size: 11))
+                    .scaledFont(size: 11)
                     .foregroundStyle(.secondary)
             }
             Chart(bars) { bar in
@@ -216,18 +216,18 @@ struct ProgressTabView: View {
         return VStack(alignment: .leading, spacing: 10) {
             IconBadge(symbol: "checklist", tint: teal, size: 42)
             Text(L("Week in review"))
-                .font(.system(size: 17, weight: .semibold))
+                .scaledFont(size: 17, weight: .semibold)
                 .foregroundStyle(teal)
             Text(L("{0} of {1} workouts done", review.completedSessions, review.plannedSessions))
-                .font(.system(size: 15, weight: .medium))
+                .scaledFont(size: 15, weight: .medium)
             ForEach(review.records) { exercise in
                 Label(L("New personal best") + ": " + exercise.name, systemImage: "trophy.fill")
-                    .font(.system(size: 13, weight: .medium))
+                    .scaledFont(size: 13, weight: .medium)
                     .foregroundStyle(Theme.amber)
             }
             if let next = review.nextWeek {
                 Label(next, systemImage: "calendar.badge.clock")
-                    .font(.system(size: 13))
+                    .scaledFont(size: 13)
                     .foregroundStyle(.secondary)
             }
         }
@@ -241,25 +241,25 @@ struct ProgressTabView: View {
         return VStack(alignment: .leading, spacing: 12) {
             IconBadge(symbol: "chart.bar.fill", tint: purple, size: 42)
             Text(L("Weekly volume"))
-                .font(.system(size: 17, weight: .semibold))
+                .scaledFont(size: 17, weight: .semibold)
                 .foregroundStyle(purple)
             Text(L("Hard sets per muscle this week against the range that builds progress at your level."))
-                .font(.system(size: 13))
+                .scaledFont(size: 13)
                 .foregroundStyle(.secondary)
             ForEach(rows) { row in
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text(row.muscle.title).font(.system(size: 14, weight: .medium))
+                        Text(row.muscle.title).scaledFont(size: 14, weight: .medium)
                         Spacer()
                         Text(L("{0} / {1}-{2}", row.done, row.target.low, row.target.high))
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .scaledFont(size: 13, weight: .semibold, design: .rounded)
                             .foregroundStyle(row.done >= row.target.low ? Theme.green : Color.secondary)
                     }
                     ProgressBar(value: Double(row.done) / Double(max(1, row.target.high)), tint: row.done >= row.target.low ? Theme.green : purple)
                 }
             }
             Text(L("{0} · {1}", phase.label, Lp(phase.repsInReserve, one: "Stop {0} rep short of failure", other: "Stop {0} reps short of failure")))
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundStyle(.secondary)
         }
         .card()
@@ -274,20 +274,20 @@ struct ProgressTabView: View {
                 IconBadge(symbol: "scalemass.fill", tint: Theme.blue, size: 42)
                 Spacer()
                 Button(L("Log weight")) { showWeightSheet = true }
-                    .font(.system(size: 14, weight: .semibold))
+                    .scaledFont(size: 14, weight: .semibold)
                     .foregroundStyle(Theme.blue)
             }
             Text(L("Body weight"))
-                .font(.system(size: 17, weight: .semibold))
+                .scaledFont(size: 17, weight: .semibold)
                 .foregroundStyle(Theme.blue)
             HStack(alignment: .firstTextBaseline) {
                 Text(units.formatWeight(latest))
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .scaledFont(size: 30, weight: .bold, design: .rounded)
                 Spacer()
                 if change != 0 {
                     let sign = change > 0 ? "+" : "-"
                     Text(L("{0} since start", "\(sign)\(units.formatWeight(abs(change)))"))
-                        .font(.system(size: 12))
+                        .scaledFont(size: 12)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -309,7 +309,7 @@ struct ProgressTabView: View {
                 .frame(height: 100)
             } else {
                 Text(L("Log your weight regularly to see the trend here."))
-                    .font(.system(size: 13))
+                    .scaledFont(size: 13)
                     .foregroundStyle(.secondary)
             }
         }
@@ -320,7 +320,7 @@ struct ProgressTabView: View {
         VStack(alignment: .leading, spacing: 12) {
             IconBadge(symbol: "heart.fill", tint: Color(hex: 0xFF3B5C), size: 42)
             Text(L("Apple Health"))
-                .font(.system(size: 17, weight: .semibold))
+                .scaledFont(size: 17, weight: .semibold)
                 .foregroundStyle(Color(hex: 0xFF3B5C))
             if store.profile.healthSync {
                 HStack(spacing: 24) {
@@ -328,11 +328,11 @@ struct ProgressTabView: View {
                     StatPill(symbol: "flame.fill", value: "\(health.activeCalories)", unit: L("active cal"), tint: Theme.pink, large: false)
                 }
                 Text(L("Workouts and body weight you log here are saved to Apple Health."))
-                    .font(.system(size: 13))
+                    .scaledFont(size: 13)
                     .foregroundStyle(.secondary)
             } else {
                 Text(L("Save your workouts and weight to Apple Health, and see today's steps and active energy, including Apple Watch data."))
-                    .font(.system(size: 13))
+                    .scaledFont(size: 13)
                     .foregroundStyle(.secondary)
                 Button(L("Connect Apple Health")) {
                     Task { @MainActor in
@@ -342,7 +342,7 @@ struct ProgressTabView: View {
                         }
                     }
                 }
-                .font(.system(size: 14, weight: .semibold))
+                .scaledFont(size: 14, weight: .semibold)
                 .foregroundStyle(Color(hex: 0xFF3B5C))
                 .disabled(!HealthService.isAvailable)
             }
@@ -355,24 +355,24 @@ struct ProgressTabView: View {
         return VStack(alignment: .leading, spacing: 12) {
             IconBadge(symbol: "trophy.fill", tint: Theme.amber, size: 42)
             Text(L("Personal records"))
-                .font(.system(size: 17, weight: .semibold))
+                .scaledFont(size: 17, weight: .semibold)
                 .foregroundStyle(Theme.amber)
             if records.isEmpty {
                 Text(L("Your heaviest lifts will show up here after your first weighted workout."))
-                    .font(.system(size: 13))
+                    .scaledFont(size: 13)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(records) { record in
                     HStack {
                         Text(record.exercise.name)
-                            .font(.system(size: 15, weight: .medium))
+                            .scaledFont(size: 15, weight: .medium)
                         Spacer()
                         VStack(alignment: .trailing, spacing: 1) {
                             Text(units.formatWeight(record.kg))
-                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                                .scaledFont(size: 15, weight: .bold, design: .rounded)
                             if let estimate = store.bestEstimatedOneRepMax(for: record.exercise.id) {
                                 Text(L("est. 1RM {0}", units.formatWeight(estimate)))
-                                    .font(.system(size: 11))
+                                    .scaledFont(size: 11)
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -388,19 +388,19 @@ struct ProgressTabView: View {
         return VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(calendar.isDateInToday(selected) ? L("Today's sessions") : L("Sessions on {0}", Loc.date(selected, "MMMd")))
-                    .font(.system(size: 17, weight: .semibold))
+                    .scaledFont(size: 17, weight: .semibold)
                 Spacer()
                 NavigationLink {
                     HistoryView()
                 } label: {
                     Text(L("All workouts"))
-                        .font(.system(size: 14, weight: .semibold))
+                        .scaledFont(size: 14, weight: .semibold)
                 }
                 .accessibilityIdentifier("allWorkouts")
             }
             if list.isEmpty {
                 Text(L("No workouts logged on this day."))
-                    .font(.system(size: 14))
+                    .scaledFont(size: 14)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(list) { session in
@@ -409,14 +409,14 @@ struct ProgressTabView: View {
                     } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(session.title).font(.system(size: 15, weight: .semibold))
+                            Text(session.title).scaledFont(size: 15, weight: .semibold)
                             Text(Loc.date(session.date, "jm"))
-                                .font(.system(size: 12))
+                                .scaledFont(size: 12)
                                 .foregroundStyle(.secondary)
                         }
                         Spacer()
                         Text(L("{0} min · {1} cal", session.durationSeconds / 60, session.calories))
-                            .font(.system(size: 13, weight: .medium))
+                            .scaledFont(size: 13, weight: .medium)
                             .foregroundStyle(.secondary)
                     }
                     .foregroundStyle(.primary)
@@ -444,10 +444,10 @@ struct LogWeightSheet: View {
         let units = store.profile.units
         VStack(alignment: .leading, spacing: 20) {
             Text(L("Log body weight"))
-                .font(.system(size: 24, weight: .bold))
+                .scaledFont(size: 24, weight: .bold)
             Stepper(value: $display, in: 20...1100, step: units.weightStep) {
                 LText("**{0} {1}**", Loc.number(display), units.weightLabel)
-                    .font(.system(size: 20))
+                    .scaledFont(size: 20)
             }
             Button(L("Save")) {
                 let kg = units.kg(fromDisplay: display)
@@ -470,7 +470,7 @@ struct LogWeightSheet: View {
                     }
                 } label: {
                     Label(L("Use latest weight from Apple Health"), systemImage: "heart.fill")
-                        .font(.system(size: 14, weight: .semibold))
+                        .scaledFont(size: 14, weight: .semibold)
                 }
                 .foregroundStyle(Color(hex: 0xFF3B5C))
                 if let message = importMessage {

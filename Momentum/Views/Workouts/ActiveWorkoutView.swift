@@ -117,7 +117,7 @@ struct ActiveWorkoutView: View {
             HStack {
                 Button { showEndDialog = true } label: {
                     Image(systemName: "xmark")
-                        .font(.system(size: 16, weight: .bold))
+                        .scaledFont(size: 16, weight: .bold)
                         .frame(width: 40, height: 40)
                         .background(Circle().fill(Color.white.opacity(0.1)))
                 }
@@ -126,7 +126,7 @@ struct ActiveWorkoutView: View {
                 Text(page < warmupCount
                      ? L("Warm-up {0} of {1}", page + 1, warmupCount)
                      : L("Exercise {0} of {1}", page - warmupCount + 1, current.exercises.count))
-                    .font(.system(size: 14, weight: .semibold))
+                    .scaledFont(size: 14, weight: .semibold)
                     .foregroundStyle(Color.white.opacity(0.7))
                 Spacer()
                 Color.clear.frame(width: 40, height: 40)
@@ -153,29 +153,29 @@ struct ActiveWorkoutView: View {
             VStack(alignment: .leading, spacing: 4) {
                 if isWarmup {
                     Text(L("WARM-UP"))
-                        .font(.system(size: 11, weight: .bold))
+                        .scaledFont(size: 11, weight: .bold)
                         .foregroundStyle(Theme.green)
                 }
                 Text(exercise.name)
-                    .font(.system(size: 26, weight: .bold))
+                    .scaledFont(size: 26, weight: .bold)
                 Text(L("{0} · {1}", exercise.muscle.title, planned.targetLabel))
-                    .font(.system(size: 14, weight: .medium))
+                    .scaledFont(size: 14, weight: .medium)
                     .foregroundStyle(Color.white.opacity(0.6))
                 if let rir = planned.repsInReserve, !isWarmup {
                     Label(Lp(rir, one: "Stop with {0} rep in the tank", other: "Stop with {0} reps in the tank"), systemImage: "gauge.with.dots.needle.33percent")
-                        .font(.system(size: 13, weight: .medium))
+                        .scaledFont(size: 13, weight: .medium)
                         .foregroundStyle(Color.white.opacity(0.75))
                 }
                 if let reason = planned.reason, !isWarmup {
                     Text(reason)
-                        .font(.system(size: 12, weight: .medium))
+                        .scaledFont(size: 12, weight: .medium)
                         .foregroundStyle(Theme.green.opacity(0.9))
                 }
             }
             if !isWarmup {
                 Button { showSwap = true } label: {
                     Label(L("Can't do this one?"), systemImage: "arrow.left.arrow.right")
-                        .font(.system(size: 14, weight: .semibold))
+                        .scaledFont(size: 14, weight: .semibold)
                         .foregroundStyle(Theme.pink)
                 }
             }
@@ -183,18 +183,18 @@ struct ActiveWorkoutView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(Array(exercise.steps.enumerated()), id: \.offset) { pair in
                         Text(verbatim: "\(pair.offset + 1). \(pair.element)")
-                            .font(.system(size: 14))
+                            .scaledFont(size: 14)
                             .foregroundStyle(Color.white.opacity(0.8))
                     }
                     Link(destination: exercise.videoURL) {
                         Label(L("Watch a video on YouTube"), systemImage: "play.rectangle.fill")
-                            .font(.system(size: 14, weight: .semibold))
+                            .scaledFont(size: 14, weight: .semibold)
                     }
                     .padding(.top, 4)
                 }
                 .padding(.top, 6)
             }
-            .font(.system(size: 14, weight: .semibold))
+            .scaledFont(size: 14, weight: .semibold)
             .tint(Theme.pink)
         }
     }
@@ -203,7 +203,7 @@ struct ActiveWorkoutView: View {
         let planned = items[page]
         return VStack(alignment: .leading, spacing: 8) {
             Text(L("Warm-up sets (light, not counted)"))
-                .font(.system(size: 13, weight: .semibold))
+                .scaledFont(size: 13, weight: .semibold)
                 .foregroundStyle(Color.white.opacity(0.6))
             ForEach(Array(planned.rampSets.enumerated()), id: \.offset) { pair in
                 let key = "\(page)-\(pair.offset)"
@@ -215,10 +215,10 @@ struct ActiveWorkoutView: View {
                         Image(systemName: done ? "checkmark.circle.fill" : "circle")
                             .foregroundStyle(done ? Theme.green : Color.white.opacity(0.4))
                         Text(verbatim: "\(units.formatWeight(pair.element.weightKg)) × \(pair.element.reps)")
-                            .font(.system(size: 15, weight: .medium))
+                            .scaledFont(size: 15, weight: .medium)
                         Spacer()
                         Text(L("easy"))
-                            .font(.system(size: 12))
+                            .scaledFont(size: 12)
                             .foregroundStyle(Color.white.opacity(0.4))
                     }
                     .padding(12)
@@ -232,16 +232,16 @@ struct ActiveWorkoutView: View {
     private var effortSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(L("How did {0} feel?", items[page].exercise.name))
-                .font(.system(size: 15, weight: .semibold))
+                .scaledFont(size: 15, weight: .semibold)
             Text(L("This decides whether the weight or reps go up next time."))
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundStyle(Color.white.opacity(0.55))
             HStack(spacing: 8) {
                 ForEach(Effort.allCases) { effort in
                     let selected = efforts[page] == effort
                     Button { efforts[page] = effort } label: {
                         Text(effort.title)
-                            .font(.system(size: 14, weight: .semibold))
+                            .scaledFont(size: 14, weight: .semibold)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
                             .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(selected ? Theme.pink : Color.white.opacity(0.08)))
@@ -262,7 +262,7 @@ struct ActiveWorkoutView: View {
 
         return HStack(spacing: 14) {
             Text(verbatim: "\(s + 1)")
-                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .scaledFont(size: 15, weight: .bold, design: .rounded)
                 .frame(width: 30, height: 30)
                 .background(Circle().fill(Color.white.opacity(0.1)))
 
@@ -276,7 +276,7 @@ struct ActiveWorkoutView: View {
                     step: isTimed ? 5 : 1
                 ) {
                     Text(isTimed ? L("{0} sec", entry.value) : Lp(entry.value, one: "{0} rep", other: "{0} reps"))
-                        .font(.system(size: 16, weight: .semibold))
+                        .scaledFont(size: 16, weight: .semibold)
                 }
                 if exercise.isLoaded {
                     Stepper(
@@ -285,7 +285,7 @@ struct ActiveWorkoutView: View {
                         step: units.weightStep
                     ) {
                         Text(weightText(entry.weightDisplay))
-                            .font(.system(size: 14, weight: .medium))
+                            .scaledFont(size: 14, weight: .medium)
                             .foregroundStyle(Color.white.opacity(0.7))
                     }
                 }
@@ -296,10 +296,10 @@ struct ActiveWorkoutView: View {
                     Circle().fill(entry.done ? Theme.green : Color.white.opacity(0.12))
                     if isHolding {
                         Text(verbatim: "\(holdRemaining)")
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .scaledFont(size: 16, weight: .bold, design: .rounded)
                     } else {
                         Image(systemName: entry.done ? "checkmark" : (isTimed ? "play.fill" : "checkmark"))
-                            .font(.system(size: 16, weight: .bold))
+                            .scaledFont(size: 16, weight: .bold)
                             .foregroundStyle(entry.done ? Color.white : Color.white.opacity(0.6))
                     }
                 }
@@ -316,13 +316,13 @@ struct ActiveWorkoutView: View {
             Image(systemName: "timer")
                 .foregroundStyle(Theme.green)
             Text(L("Rest {0}", formatClock(restRemaining)))
-                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .scaledFont(size: 18, weight: .bold, design: .rounded)
                 .monospacedDigit()
             Spacer()
             Button(L("+15s")) { restRemaining += 15 }
-                .font(.system(size: 14, weight: .semibold))
+                .scaledFont(size: 14, weight: .semibold)
             Button(L("Skip")) { restRemaining = 0 }
-                .font(.system(size: 14, weight: .semibold))
+                .scaledFont(size: 14, weight: .semibold)
                 .foregroundStyle(Theme.pink)
         }
         .padding(.horizontal, 20)
@@ -336,7 +336,7 @@ struct ActiveWorkoutView: View {
         return HStack {
             if page > 0 {
                 Button(L("Previous")) { page -= 1 }
-                    .font(.system(size: 16, weight: .semibold))
+                    .scaledFont(size: 16, weight: .semibold)
                     .foregroundStyle(Color.white.opacity(0.7))
             }
             Spacer()
@@ -363,12 +363,12 @@ struct ActiveWorkoutView: View {
         return ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 Image(systemName: completedSets == 0 ? "moon.zzz.fill" : "checkmark.seal.fill")
-                    .font(.system(size: 44))
+                    .scaledFont(size: 44)
                     .foregroundStyle(completedSets == 0 ? Color.gray : Theme.green)
                     .padding(.top, 40)
 
                 Text(completedSets == 0 ? L("No sets logged") : L("Workout complete"))
-                    .font(.system(size: 34, weight: .bold))
+                    .scaledFont(size: 34, weight: .bold)
 
                 HStack(spacing: 22) {
                     StatPill(symbol: "flame.fill", value: "\(completedSets == 0 ? 0 : calories)", unit: L("cal"), tint: Theme.pink, onDark: true)
@@ -382,16 +382,16 @@ struct ActiveWorkoutView: View {
                 } else if saved {
                     if healthSaved == true {
                         Label(L("Saved to Apple Health"), systemImage: "heart.fill")
-                            .font(.system(size: 14, weight: .semibold))
+                            .scaledFont(size: 14, weight: .semibold)
                             .foregroundStyle(Theme.pink)
                     } else if healthSaved == false {
                         Label(L("Couldn't save to Apple Health. Check Settings → Health → Data Access."), systemImage: "exclamationmark.triangle")
-                            .font(.system(size: 13, weight: .medium))
+                            .scaledFont(size: 13, weight: .medium)
                             .foregroundStyle(Color.white.opacity(0.7))
                     }
                     ForEach(adaptationMessages, id: \.self) { message in
                         Label(message, systemImage: "wand.and.stars")
-                            .font(.system(size: 15, weight: .medium))
+                            .scaledFont(size: 15, weight: .medium)
                             .padding(16)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.08)))
@@ -400,17 +400,17 @@ struct ActiveWorkoutView: View {
                         .buttonStyle(PillButtonStyle())
                 } else {
                     Text(L("How did the whole workout feel?"))
-                        .font(.system(size: 17, weight: .semibold))
+                        .scaledFont(size: 17, weight: .semibold)
                     Text(L("Two sessions in a row that feel too easy or too hard change your plan."))
-                        .font(.system(size: 14))
+                        .scaledFont(size: 14)
                         .foregroundStyle(Color.white.opacity(0.6))
 
                     HStack(spacing: 10) {
                         ForEach(WorkoutFeedback.allCases) { option in
                             Button { feedback = option } label: {
                                 VStack(spacing: 6) {
-                                    Image(systemName: option.symbol).font(.system(size: 22))
-                                    Text(option.title).font(.system(size: 13, weight: .semibold))
+                                    Image(systemName: option.symbol).scaledFont(size: 22)
+                                    Text(option.title).scaledFont(size: 13, weight: .semibold)
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)
@@ -427,7 +427,7 @@ struct ActiveWorkoutView: View {
                         Button(L("Save workout")) { save(duration: duration, calories: calories) }
                             .buttonStyle(PillButtonStyle())
                         Button(L("Discard")) { onClose() }
-                            .font(.system(size: 15, weight: .semibold))
+                            .scaledFont(size: 15, weight: .semibold)
                             .foregroundStyle(Color.white.opacity(0.6))
                     }
                     .padding(.top, 8)

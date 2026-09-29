@@ -62,7 +62,7 @@ struct SettingsView: View {
                             let on = activeWeekdays.contains(weekday)
                             Button { toggle(weekday) } label: {
                                 Text(Loc.calendar.veryShortWeekdaySymbols[weekday - 1])
-                                    .font(.system(size: 14, weight: .semibold))
+                                    .scaledFont(size: 14, weight: .semibold)
                                     .foregroundStyle(on ? Color.white : Color.primary)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
@@ -133,17 +133,17 @@ struct SettingsView: View {
                                 Text(ExerciseLibrary.exercise(id).name)
                                 Spacer()
                                 Button(L("Show again")) { showAgain(id) }
-                                    .font(.system(size: 14, weight: .semibold))
+                                    .scaledFont(size: 14, weight: .semibold)
                             }
                         }
                         ForEach(store.profile.swapPreferences.keys.sorted(), id: \.self) { id in
                             if !store.profile.excludedExercises.contains(id), let replacement = store.profile.swapPreferences[id] {
                                 HStack {
                                     Text(L("{0} → {1}", ExerciseLibrary.exercise(id).name, ExerciseLibrary.exercise(replacement).name))
-                                        .font(.system(size: 14))
+                                        .scaledFont(size: 14)
                                     Spacer()
                                     Button(L("Undo")) { store.profile.swapPreferences[id] = nil }
-                                        .font(.system(size: 14, weight: .semibold))
+                                        .scaledFont(size: 14, weight: .semibold)
                                 }
                             }
                         }

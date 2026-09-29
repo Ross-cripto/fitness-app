@@ -38,3 +38,29 @@ extension MuscleGroup {
         }
     }
 }
+
+// MARK: - Dynamic Type
+
+/// A system font of a given design size that still follows the person's text-size setting
+/// (`Font.system(size:)` alone never scales).
+private struct ScaledFont: ViewModifier {
+    @ScaledMetric(relativeTo: .body) private var size: CGFloat
+    private let weight: Font.Weight
+    private let design: Font.Design
+
+    init(size: CGFloat, weight: Font.Weight, design: Font.Design) {
+        _size = ScaledMetric(wrappedValue: size, relativeTo: .body)
+        self.weight = weight
+        self.design = design
+    }
+
+    func body(content: Content) -> some View {
+        content.font(.system(size: size, weight: weight, design: design))
+    }
+}
+
+extension View {
+    func scaledFont(size: CGFloat, weight: Font.Weight = .regular, design: Font.Design = .default) -> some View {
+        modifier(ScaledFont(size: size, weight: weight, design: design))
+    }
+}

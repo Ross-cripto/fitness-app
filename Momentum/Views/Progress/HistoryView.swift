@@ -11,10 +11,10 @@ struct HistoryView: View {
             if months.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 40))
+                        .scaledFont(size: 40)
                         .foregroundStyle(.secondary)
                     Text(L("No workouts yet. Finish one and it will show up here."))
-                        .font(.system(size: 15))
+                        .scaledFont(size: 15)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }
@@ -59,14 +59,14 @@ struct HistoryView: View {
     private func row(_ session: WorkoutSession) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(session.title).font(.system(size: 16, weight: .semibold))
+                Text(session.title).scaledFont(size: 16, weight: .semibold)
                 Text(Loc.date(session.date, "EEEdMMMjm"))
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .foregroundStyle(.secondary)
             }
             Spacer()
             Text(L("{0} min · {1} cal", session.durationSeconds / 60, session.calories))
-                .font(.system(size: 13, weight: .medium))
+                .scaledFont(size: 13, weight: .medium)
                 .foregroundStyle(.secondary)
         }
     }
@@ -99,10 +99,10 @@ struct SessionDetailView: View {
             ForEach(session.logs) { log in
                 Section {
                     Text(SessionSummary.summary(of: log, units: units))
-                        .font(.system(size: 14))
+                        .scaledFont(size: 14)
                     if let effort = log.effort {
                         Text(L("Felt: {0}", effort.title))
-                            .font(.system(size: 12))
+                            .scaledFont(size: 12)
                             .foregroundStyle(.secondary)
                     }
                 } header: {

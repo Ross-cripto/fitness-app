@@ -37,15 +37,15 @@ struct ExploreView: View {
                                     .frame(width: 56, height: 44)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(exercise.name)
-                                        .font(.system(size: 16, weight: .semibold))
+                                        .scaledFont(size: 16, weight: .semibold)
                                         .foregroundStyle(Color.primary)
                                     Text(L("{0} · {1} · {2}", exercise.muscle.title, exercise.equipment.title, exercise.level.title))
-                                        .font(.system(size: 12))
+                                        .scaledFont(size: 12)
                                         .foregroundStyle(Color.secondary)
                                 }
                                 Spacer()
                                 Image(systemName: "chevron.right")
-                                    .font(.system(size: 12, weight: .semibold))
+                                    .scaledFont(size: 12, weight: .semibold)
                                     .foregroundStyle(.tertiary)
                             }
                         }
@@ -64,7 +64,7 @@ struct ExploreView: View {
     private func chip(_ title: String, isOn: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 14, weight: .semibold))
+                .scaledFont(size: 14, weight: .semibold)
                 .foregroundStyle(isOn ? Color.white : Color.primary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
@@ -87,7 +87,7 @@ struct ExerciseDetailView: View {
                         .frame(height: 240)
 
                     Text(exercise.name)
-                        .font(.system(size: 28, weight: .bold))
+                        .scaledFont(size: 28, weight: .bold)
 
                     HStack(spacing: 8) {
                         pill(exercise.muscle.title)
@@ -98,16 +98,16 @@ struct ExerciseDetailView: View {
 
                     VStack(alignment: .leading, spacing: 12) {
                         Text(L("How to"))
-                            .font(.system(size: 17, weight: .semibold))
+                            .scaledFont(size: 17, weight: .semibold)
                         ForEach(Array(exercise.steps.enumerated()), id: \.offset) { pair in
                             HStack(alignment: .top, spacing: 12) {
                                 Text(String(pair.offset + 1))
-                                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                                    .scaledFont(size: 13, weight: .bold, design: .rounded)
                                     .foregroundStyle(.white)
                                     .frame(width: 24, height: 24)
                                     .background(Circle().fill(Theme.pink))
                                 Text(pair.element)
-                                    .font(.system(size: 15))
+                                    .scaledFont(size: 15)
                             }
                         }
                     }
@@ -115,19 +115,19 @@ struct ExerciseDetailView: View {
                     Link(destination: exercise.videoURL) {
                         HStack(spacing: 10) {
                             Image(systemName: "play.rectangle.fill")
-                                .font(.system(size: 22))
+                                .scaledFont(size: 22)
                                 .foregroundStyle(.red)
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(L("Watch a video on YouTube"))
-                                    .font(.system(size: 15, weight: .semibold))
+                                    .scaledFont(size: 15, weight: .semibold)
                                     .foregroundStyle(Color.primary)
                                 Text(L("Proper-form tutorials for {0}", exercise.name))
-                                    .font(.system(size: 12))
+                                    .scaledFont(size: 12)
                                     .foregroundStyle(Color.secondary)
                             }
                             Spacer()
                             Image(systemName: "arrow.up.right")
-                                .font(.system(size: 13, weight: .semibold))
+                                .scaledFont(size: 13, weight: .semibold)
                                 .foregroundStyle(.secondary)
                         }
                         .padding(14)
@@ -139,9 +139,9 @@ struct ExerciseDetailView: View {
                     if let best = store.bestSet(for: exercise.id) {
                         VStack(alignment: .leading, spacing: 6) {
                             Text(L("Your best"))
-                                .font(.system(size: 17, weight: .semibold))
+                                .scaledFont(size: 17, weight: .semibold)
                             Text(bestText(best))
-                                .font(.system(size: 22, weight: .bold, design: .rounded))
+                                .scaledFont(size: 22, weight: .bold, design: .rounded)
                                 .foregroundStyle(Theme.pink)
                         }
                         .card()
@@ -166,9 +166,9 @@ struct ExerciseDetailView: View {
         if points.count >= 2, let first = points.first, let last = points.last {
             VStack(alignment: .leading, spacing: 10) {
                 Text(L("Your progress"))
-                    .font(.system(size: 17, weight: .semibold))
+                    .scaledFont(size: 17, weight: .semibold)
                 Text(progressTitle)
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .foregroundStyle(.secondary)
                 Chart(points) { point in
                     LineMark(x: .value(L("Date"), point.date), y: .value(progressTitle, displayValue(point.value)))
@@ -179,7 +179,7 @@ struct ExerciseDetailView: View {
                 .chartYScale(domain: .automatic(includesZero: false))
                 .frame(height: 150)
                 Text(L("{0} → {1}", valueText(first.value), valueText(last.value)))
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .scaledFont(size: 15, weight: .semibold, design: .rounded)
                     .foregroundStyle(Theme.pink)
             }
             .card()
@@ -209,7 +209,7 @@ struct ExerciseDetailView: View {
 
     private func pill(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 12, weight: .semibold))
+            .scaledFont(size: 12, weight: .semibold)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(Capsule().fill(Color.primary.opacity(0.08)))

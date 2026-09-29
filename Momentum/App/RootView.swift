@@ -12,6 +12,8 @@ struct RootView: View {
             }
         }
         .environment(\.locale, store.language.locale)
+        // Text follows the person's size setting up to a point where fixed-size cards would break.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
         // Rebuild the tree when the language changes so every string is looked up again.
         .id(store.language)
     }

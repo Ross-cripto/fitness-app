@@ -46,16 +46,16 @@ struct WorkoutDetailView: View {
                     }
 
                     Text(current.title)
-                        .font(.system(size: 44, weight: .bold))
+                        .scaledFont(size: 44, weight: .bold)
                         .foregroundStyle(.white)
                         .padding(.top, 10)
                     HStack(spacing: 8) {
                         Text(current.subtitle)
-                            .font(.system(size: 15, weight: .medium))
+                            .scaledFont(size: 15, weight: .medium)
                             .foregroundStyle(Color.white.opacity(0.65))
                         if let phase = current.phase {
                             Text(phase.label)
-                                .font(.system(size: 11, weight: .bold))
+                                .scaledFont(size: 11, weight: .bold)
                                 .foregroundStyle(phase.isDeload ? Theme.amber : Theme.green)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
@@ -66,7 +66,7 @@ struct WorkoutDetailView: View {
 
                     if let note = current.note {
                         Label(note, systemImage: "info.circle.fill")
-                            .font(.system(size: 13, weight: .medium))
+                            .scaledFont(size: 13, weight: .medium)
                             .foregroundStyle(Color.white.opacity(0.85))
                             .padding(12)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -79,7 +79,7 @@ struct WorkoutDetailView: View {
                     if !current.warmup.isEmpty {
                         sectionLabel(Lp(current.warmup.count, one: "Warm-up · {0} drill", other: "Warm-up · {0} drills"))
                         Text(current.warmup.map { $0.exercise.name }.joined(separator: " · "))
-                            .font(.system(size: 13))
+                            .scaledFont(size: 13)
                             .foregroundStyle(Color.white.opacity(0.6))
                             .padding(.bottom, 14)
                     }
@@ -139,7 +139,7 @@ struct WorkoutDetailView: View {
 
     private func sectionLabel(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 11, weight: .semibold))
+            .scaledFont(size: 11, weight: .semibold)
             .foregroundStyle(Color.white.opacity(0.6))
             .padding(.bottom, 8)
     }
@@ -157,7 +157,7 @@ struct WorkoutDetailView: View {
                         }
                     } label: {
                         Label(option.title, systemImage: option.symbol)
-                            .font(.system(size: 13, weight: .semibold))
+                            .scaledFont(size: 13, weight: .semibold)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
                             .foregroundStyle(selected ? Color.white : Color.white.opacity(0.7))
@@ -177,7 +177,7 @@ struct WorkoutDetailView: View {
                 .frame(height: 520)
                 .frame(maxHeight: .infinity, alignment: .top)
             Image(systemName: current.theme.symbol)
-                .font(.system(size: 170))
+                .scaledFont(size: 170)
                 .foregroundStyle(Color.white.opacity(0.12))
                 .padding(.top, 90)
                 .frame(maxWidth: .infinity, alignment: .trailing)
@@ -203,14 +203,14 @@ struct WorkoutDetailView: View {
 
                         VStack(alignment: .leading, spacing: 3) {
                             Text(exercise.name)
-                                .font(.system(size: 15, weight: .semibold))
+                                .scaledFont(size: 15, weight: .semibold)
                                 .foregroundStyle(.white)
                                 .multilineTextAlignment(.leading)
                             Text(detailLine(planned))
-                                .font(.system(size: 12, weight: .medium))
+                                .scaledFont(size: 12, weight: .medium)
                                 .foregroundStyle(Color.white.opacity(0.6))
                             Text(L("{0} min · {1} cal", minutes, calories))
-                                .font(.system(size: 11))
+                                .scaledFont(size: 11)
                                 .foregroundStyle(Color.white.opacity(0.4))
                         }
                         Spacer(minLength: 4)
@@ -222,7 +222,7 @@ struct WorkoutDetailView: View {
                     swapTarget = planned
                 } label: {
                     Image(systemName: "arrow.left.arrow.right")
-                        .font(.system(size: 14, weight: .semibold))
+                        .scaledFont(size: 14, weight: .semibold)
                         .foregroundStyle(Color.white.opacity(0.75))
                         .frame(width: 40, height: 40)
                         .contentShape(Rectangle())
@@ -231,7 +231,7 @@ struct WorkoutDetailView: View {
             }
             if let reason = planned.reason {
                 Text(reason)
-                    .font(.system(size: 11, weight: .medium))
+                    .scaledFont(size: 11, weight: .medium)
                     .foregroundStyle(Theme.green.opacity(0.9))
                     .padding(.leading, 88)
             }
